@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ripple android:color="?colorControlHighlight"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item>
+        <layer-list>
+
+<!--            <item android:gravity="center" android:drawable="@drawable/circle"/>-->
+<!--            <item android:gravity="center" android:drawable="@drawable/timer_48"-->
+<!--                android:top="8dp"-->
+<!--                android:bottom="8dp"-->
+<!--                android:right="8dp"-->
+<!--                android:left="8dp"/>-->
+
+        </layer-list>
+    </item>
+</ripple>
