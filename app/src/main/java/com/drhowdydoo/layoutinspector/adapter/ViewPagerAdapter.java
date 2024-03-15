@@ -60,6 +60,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             ((HierarchyTabViewHolder) holder).recyclerView.setHasFixedSize(true);
             ((HierarchyTabViewHolder) holder).recyclerView.setLayoutManager(new LinearLayoutManager(context));
             if (hierarchy != null) treeViewAdapter.setTreeNodes(hierarchy);
+            treeViewAdapter.expandAll();
             ((HierarchyTabViewHolder) holder).recyclerView.setAdapter(treeViewAdapter);
             Log.d("TAG", "onBindViewHolder: TreeViewNodes : " +treeViewAdapter.getItemCount());
 
