@@ -93,6 +93,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     public void setHierarchyTree(List<TreeNode> treeNodes) {
         hierarchy = treeNodes;
+        notifyDataSetChanged();
     }
 
 }

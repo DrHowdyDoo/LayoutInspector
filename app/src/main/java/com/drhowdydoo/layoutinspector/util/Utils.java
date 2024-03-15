@@ -9,11 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Utils {
-    private static List<TreeNode> componentTree;
+    private static final List<TreeNode> componentTree = new ArrayList<>();
 
     public static List<TreeNode> displayViewHierarchy(AssistStructure assistStructure) {
         int windowNodeCount = assistStructure.getWindowNodeCount();
-        componentTree = new ArrayList<>();
+        componentTree.clear();
         for (int i = 0; i < windowNodeCount; i++) {
             AssistStructure.WindowNode windowNode = assistStructure.getWindowNodeAt(i);
             displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0,null);

@@ -13,11 +13,18 @@
         android:background="@drawable/rounded_arrow_drop_down_24"
         app:tint="?colorOnBackground" />
 
+    <ImageView
+        android:id="@+id/imgIcon"
+        android:layout_marginStart="6dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="?colorOnBackground" />
+
     <TextView
         android:id="@+id/tvNode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="8dp"
+        android:paddingHorizontal="6dp"
         android:paddingVertical="4dp"
         android:text="Text"
         android:textAppearance="@style/TextAppearance.Material3.BodyMedium">
