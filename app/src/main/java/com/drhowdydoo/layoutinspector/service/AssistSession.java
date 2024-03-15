@@ -56,7 +56,7 @@ public class AssistSession extends VoiceInteractionSession {
                 hierarchy = Utils.displayViewHierarchy(assistStructure);
                 Log.d("TAG", "onHandleAssist: Hierarchy " + hierarchy);
                 viewPagerAdapter.setHierarchyTree(hierarchy);
-                viewPagerAdapter.notifyDataSetChanged();
+
             }
         }
     }

@@ -73,11 +73,9 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {
         RecyclerView recyclerView;
-        Button btnExpandCollapse;
         public HierarchyTabViewHolder(@NonNull View itemView) {
             super(itemView);
             recyclerView = itemView.findViewById(R.id.recycler_view);
-            btnExpandCollapse = itemView.findViewById(R.id.btnExpandCollapse);
         }
     }
 
