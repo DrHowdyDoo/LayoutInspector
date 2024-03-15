@@ -26,8 +26,6 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-import java.util.List;
-
 public class AssistSession extends VoiceInteractionSession {
 
     private static final String TAG = "AssistSession";
