@@ -20,8 +20,11 @@ import androidx.annotation.Nullable;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.drhowdydoo.layoutinspector.R;
+import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
 import com.drhowdydoo.layoutinspector.util.Utils;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.List;
 
@@ -33,6 +36,7 @@ public class AssistSession extends VoiceInteractionSession {
     private MaterialCardView mCardView;
     private View mAssistantView;
     private ViewPager2 viewPager;
+    private ViewPagerAdapter viewPagerAdapter;
 
     public AssistSession(Context context) {
         super(context);
@@ -65,6 +69,16 @@ public class AssistSession extends VoiceInteractionSession {
         slideUpAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
         mCardView = mAssistantView.findViewById(R.id.card_bg);
         viewPager = mAssistantView.findViewById(R.id.viewPager);
+        TabLayout tabLayout = mAssistantView.findViewById(R.id.tabLayout);
+        viewPagerAdapter = new ViewPagerAdapter();
+        viewPager.setAdapter(viewPagerAdapter);
+        new TabLayoutMediator(tabLayout,viewPager, (tab, position) -> {
+            if (position == 0) {
+                tab.setText("Component");
+            } else {
+                tab.setText("Hierarchy");
+            }
+        }).attach();
         return mAssistantView;
     }
 

@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="#0AFFFFFF"
+    android:background="#14FFFFFF"
     android:visibility="invisible"
     tools:visibility="visible"
     android:animateLayoutChanges="true"
@@ -28,6 +28,7 @@
             android:orientation="vertical">
 
             <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:tabGravity="center"
@@ -40,11 +41,13 @@
                 android:background="@drawable/tab_indicator">
 
                 <com.google.android.material.tabs.TabItem
+                    android:id="@+id/componentTab"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Component" />
 
                 <com.google.android.material.tabs.TabItem
+                    android:id="@+id/hierarchyTab"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Hierarchy"

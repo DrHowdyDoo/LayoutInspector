@@ -9,4 +9,5 @@ public class AssistSessionService extends VoiceInteractionSessionService {
     public VoiceInteractionSession onNewSession(Bundle args) {
         return (new AssistSession(this));
     }
+
 }
