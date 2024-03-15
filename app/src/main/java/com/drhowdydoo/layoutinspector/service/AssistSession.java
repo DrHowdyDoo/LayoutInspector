@@ -19,12 +19,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
 import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
 import com.drhowdydoo.layoutinspector.util.Utils;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class AssistSession extends VoiceInteractionSession {
 
@@ -35,6 +39,7 @@ public class AssistSession extends VoiceInteractionSession {
     private View mAssistantView;
     private ViewPager2 viewPager;
     private ViewPagerAdapter viewPagerAdapter;
+    private List<TreeNode> hierarchy = new ArrayList<>();
 
     public AssistSession(Context context) {
         super(context);
@@ -46,12 +51,14 @@ public class AssistSession extends VoiceInteractionSession {
         super.onHandleAssist(state);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             assistStructure = state.getAssistStructure();
+            Log.d("TAG", "onHandleAssist: " + assistStructure);
+            if (assistStructure != null) {
+                hierarchy = Utils.displayViewHierarchy(assistStructure);
+                Log.d("TAG", "onHandleAssist: Hierarchy " + hierarchy);
+                viewPagerAdapter.setHierarchyTree(hierarchy);
+                viewPagerAdapter.notifyDataSetChanged();
+            }
         }
-        if (assistStructure != null) {
-            String views = Utils.displayViewHierarchy(assistStructure);
-            Log.d(TAG, "Hierarchy : " + views);
-        }
-
     }
 
     @Override
@@ -68,7 +75,7 @@ public class AssistSession extends VoiceInteractionSession {
         mCardView = mAssistantView.findViewById(R.id.card_bg);
         viewPager = mAssistantView.findViewById(R.id.viewPager);
         TabLayout tabLayout = mAssistantView.findViewById(R.id.tabLayout);
-        viewPagerAdapter = new ViewPagerAdapter();
+        viewPagerAdapter = new ViewPagerAdapter(getContext());
         viewPager.setAdapter(viewPagerAdapter);
         new TabLayoutMediator(tabLayout,viewPager, (tab, position) -> {
             if (position == 0) {
@@ -78,19 +85,6 @@ public class AssistSession extends VoiceInteractionSession {
             }
         }).attach();
         return mAssistantView;
-    }
-
-    private void setGradient(TextView view) {
-        TextPaint paint = view.getPaint();
-        float width = paint.measureText((String) view.getText());
-
-        Shader textShader = new LinearGradient(0, 0, width, 0,
-                new int[]{
-                        Color.parseColor("#A770EF"),
-                        Color.parseColor("#CF8BF3"),
-                        Color.parseColor("#FDB99B"),
-                }, null, Shader.TileMode.CLAMP);
-        view.getPaint().setShader(textShader);
     }
 
     @Override

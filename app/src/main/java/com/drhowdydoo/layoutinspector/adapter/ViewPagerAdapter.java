@@ -1,15 +1,36 @@
 package com.drhowdydoo.layoutinspector.adapter;
 
+import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.amrdeveloper.treeview.TreeNode;
+import com.amrdeveloper.treeview.TreeViewAdapter;
+import com.amrdeveloper.treeview.TreeViewHolderFactory;
 import com.drhowdydoo.layoutinspector.R;
+import com.drhowdydoo.layoutinspector.service.AssistSession;
+import com.drhowdydoo.layoutinspector.ui.HierarchyViewHolder;
 
-public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.SimpleViewHolder> {
+import java.util.ArrayList;
+import java.util.List;
+
+@SuppressWarnings({"InnerClassMayBeStatic","RawUseOfParameterized"})
+public class ViewPagerAdapter extends RecyclerView.Adapter {
+
+    private List<TreeNode> hierarchy = new ArrayList<>();
+    private Context context;
+
+    public ViewPagerAdapter(Context context) {
+        this.context = context;
+    }
+
 
     @Override
     public int getItemViewType(int position) {
@@ -18,20 +39,31 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.Simp
 
     @NonNull
     @Override
-    public SimpleViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
         if (viewType == 0) {
             view = LayoutInflater.from(parent.getContext()).inflate(R.layout.component_view,parent,false);
+            return new ComponentTabViewholder(view);
         }else {
             view = LayoutInflater.from(parent.getContext()).inflate(R.layout.hierarchy_view,parent,false);
+            return new HierarchyTabViewHolder(view);
 
         }
-        return new SimpleViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull SimpleViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof HierarchyTabViewHolder) {
+            TreeViewHolderFactory factory = (v, layout) -> new HierarchyViewHolder(v);
+            TreeViewAdapter treeViewAdapter = new TreeViewAdapter(factory);
+            Log.d("TAG", "onBindViewHolder: Hierarchy " + hierarchy);
+            ((HierarchyTabViewHolder) holder).recyclerView.setHasFixedSize(true);
+            ((HierarchyTabViewHolder) holder).recyclerView.setLayoutManager(new LinearLayoutManager(context));
+            if (hierarchy != null) treeViewAdapter.setTreeNodes(hierarchy);
+            ((HierarchyTabViewHolder) holder).recyclerView.setAdapter(treeViewAdapter);
+            Log.d("TAG", "onBindViewHolder: TreeViewNodes : " +treeViewAdapter.getItemCount());
 
+        }
     }
 
     @Override
@@ -39,9 +71,24 @@ public class ViewPagerAdapter extends RecyclerView.Adapter<ViewPagerAdapter.Simp
         return 2;
     }
 
-    public class SimpleViewHolder extends RecyclerView.ViewHolder {
-        public SimpleViewHolder(@NonNull View itemView) {
+    public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {
+        RecyclerView recyclerView;
+        Button btnExpandCollapse;
+        public HierarchyTabViewHolder(@NonNull View itemView) {
+            super(itemView);
+            recyclerView = itemView.findViewById(R.id.recycler_view);
+            btnExpandCollapse = itemView.findViewById(R.id.btnExpandCollapse);
+        }
+    }
+
+    public class ComponentTabViewholder extends RecyclerView.ViewHolder {
+        public ComponentTabViewholder(@NonNull View itemView) {
             super(itemView);
         }
     }
+
+    public void setHierarchyTree(List<TreeNode> treeNodes) {
+        hierarchy = treeNodes;
+    }
+
 }
