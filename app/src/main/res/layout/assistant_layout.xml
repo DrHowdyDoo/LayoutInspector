@@ -22,7 +22,7 @@
         android:layout_marginBottom="26dp"
         app:cardCornerRadius="24dp">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="8dp"
@@ -33,14 +33,17 @@
                 android:id="@+id/tabLayout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/tab_indicator"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:tabGravity="center"
                 app:tabIndicator="@drawable/tab_indicator"
-                app:tabIndicatorGravity="center"
-                app:tabIndicatorHeight="42dp"
                 app:tabIndicatorColor="?colorSecondaryContainer"
                 app:tabIndicatorFullWidth="true"
-                app:tabSelectedTextColor="?colorOnBackground"
-                android:background="@drawable/tab_indicator">
+                app:tabIndicatorGravity="center"
+                app:tabIndicatorHeight="42dp"
+                app:tabSelectedTextColor="?colorOnBackground">
 
                 <com.google.android.material.tabs.TabItem
                     android:id="@+id/componentTab"
@@ -52,19 +55,34 @@
                     android:id="@+id/hierarchyTab"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hierarchy"
-                    />
+                    android:text="Hierarchy" />
 
             </com.google.android.material.tabs.TabLayout>
 
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/viewPager"
-                android:clipToPadding="false"
-                android:animateLayoutChanges="true"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="0dp"
+                android:animateLayoutChanges="true"
+                android:clipToPadding="false"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tabLayout" />
 
-        </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTreeExpand"
+                style="@style/Widget.Material3.Button.IconButton.Filled.Tonal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="invisible"
+                tools:visibility="visible"
+                android:layout_gravity="end|top"
+                app:icon="@drawable/rounded_collapse_all_24"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </com.google.android.material.card.MaterialCardView>
 

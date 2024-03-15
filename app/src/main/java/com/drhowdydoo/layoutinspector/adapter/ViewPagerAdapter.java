@@ -25,6 +25,7 @@ import java.util.List;
 public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     private List<TreeNode> hierarchy = new ArrayList<>();
+    private TreeViewAdapter treeViewAdapter;
     private Context context;
 
     public ViewPagerAdapter(Context context) {
@@ -55,14 +56,13 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof HierarchyTabViewHolder) {
             TreeViewHolderFactory factory = (v, layout) -> new HierarchyViewHolder(v);
-            TreeViewAdapter treeViewAdapter = new TreeViewAdapter(factory);
+            treeViewAdapter = new TreeViewAdapter(factory);
             Log.d("TAG", "onBindViewHolder: Hierarchy " + hierarchy);
             ((HierarchyTabViewHolder) holder).recyclerView.setHasFixedSize(true);
             ((HierarchyTabViewHolder) holder).recyclerView.setLayoutManager(new LinearLayoutManager(context));
             if (hierarchy != null) treeViewAdapter.setTreeNodes(hierarchy);
             treeViewAdapter.expandAll();
             ((HierarchyTabViewHolder) holder).recyclerView.setAdapter(treeViewAdapter);
-            Log.d("TAG", "onBindViewHolder: TreeViewNodes : " +treeViewAdapter.getItemCount());
 
         }
     }
@@ -70,6 +70,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     @Override
     public int getItemCount() {
         return 2;
+    }
+
+    public void setTreeExpanded(boolean expandTree) {
+        if (expandTree) treeViewAdapter.expandAll();
+        else treeViewAdapter.collapseAll();
     }
 
     public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {

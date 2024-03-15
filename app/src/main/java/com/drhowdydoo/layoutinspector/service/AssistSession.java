@@ -17,12 +17,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
 import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
 import com.drhowdydoo.layoutinspector.util.Utils;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
@@ -40,6 +42,8 @@ public class AssistSession extends VoiceInteractionSession {
     private ViewPager2 viewPager;
     private ViewPagerAdapter viewPagerAdapter;
     private List<TreeNode> hierarchy = new ArrayList<>();
+    private MaterialButton btnTreeExpand;
+    private boolean isTreeExpanded = true;
 
     public AssistSession(Context context) {
         super(context);
@@ -74,17 +78,43 @@ public class AssistSession extends VoiceInteractionSession {
         slideUpAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
         mCardView = mAssistantView.findViewById(R.id.card_bg);
         viewPager = mAssistantView.findViewById(R.id.viewPager);
+        btnTreeExpand = mAssistantView.findViewById(R.id.btnTreeExpand);
         TabLayout tabLayout = mAssistantView.findViewById(R.id.tabLayout);
         viewPagerAdapter = new ViewPagerAdapter(getContext());
         viewPager.setAdapter(viewPagerAdapter);
         new TabLayoutMediator(tabLayout,viewPager, (tab, position) -> {
             if (position == 0) {
                 tab.setText("Component");
+                showExpandAllButton(false);
             } else {
                 tab.setText("Hierarchy");
+                showExpandAllButton(true);
             }
         }).attach();
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                showExpandAllButton(position != 0);
+            }
+        });
+
+        btnTreeExpand.setOnClickListener(v -> {
+            viewPagerAdapter.setTreeExpanded(!isTreeExpanded);
+            isTreeExpanded = !isTreeExpanded;
+            if (isTreeExpanded) {
+                btnTreeExpand.setIcon(AppCompatResources.getDrawable(getContext(),R.drawable.rounded_collapse_all_24));
+            }else {
+                btnTreeExpand.setIcon(AppCompatResources.getDrawable(getContext(),R.drawable.rounded_expand_all_24));
+            }
+        });
+
         return mAssistantView;
+    }
+
+    private void showExpandAllButton(boolean showButton) {
+        if (showButton) btnTreeExpand.setVisibility(View.VISIBLE);
+        else btnTreeExpand.setVisibility(View.GONE);
     }
 
     @Override
