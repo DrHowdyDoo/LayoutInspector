@@ -2,18 +2,13 @@ package com.drhowdydoo.layoutinspector.service;
 
 import android.app.assist.AssistStructure;
 import android.content.Context;
-import android.graphics.Color;
-import android.graphics.LinearGradient;
-import android.graphics.Shader;
 import android.os.Bundle;
 import android.service.voice.VoiceInteractionSession;
-import android.text.TextPaint;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -71,6 +66,7 @@ public class AssistSession extends VoiceInteractionSession {
         super.onCreate();
     }
 
+    @SuppressWarnings("ClickableViewAccessibility")
     @Override
     public View onCreateContentView() {
         LayoutInflater inflater = getLayoutInflater();
@@ -108,7 +104,6 @@ public class AssistSession extends VoiceInteractionSession {
                 btnTreeExpand.setIcon(AppCompatResources.getDrawable(getContext(),R.drawable.rounded_expand_all_24));
             }
         });
-
         return mAssistantView;
     }
 

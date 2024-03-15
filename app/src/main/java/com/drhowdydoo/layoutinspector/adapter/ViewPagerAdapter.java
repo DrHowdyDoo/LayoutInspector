@@ -5,7 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.HorizontalScrollView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,7 +15,6 @@ import com.amrdeveloper.treeview.TreeNode;
 import com.amrdeveloper.treeview.TreeViewAdapter;
 import com.amrdeveloper.treeview.TreeViewHolderFactory;
 import com.drhowdydoo.layoutinspector.R;
-import com.drhowdydoo.layoutinspector.service.AssistSession;
 import com.drhowdydoo.layoutinspector.ui.HierarchyViewHolder;
 
 import java.util.ArrayList;
@@ -52,6 +51,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         }
     }
 
+    @SuppressWarnings("ClickableViewAccessibility")
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof HierarchyTabViewHolder) {
@@ -63,7 +63,6 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             if (hierarchy != null) treeViewAdapter.setTreeNodes(hierarchy);
             treeViewAdapter.expandAll();
             ((HierarchyTabViewHolder) holder).recyclerView.setAdapter(treeViewAdapter);
-
         }
     }
 
@@ -79,9 +78,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {
         RecyclerView recyclerView;
+        HorizontalScrollView horizontalScrollView;
         public HierarchyTabViewHolder(@NonNull View itemView) {
             super(itemView);
             recyclerView = itemView.findViewById(R.id.recycler_view);
+            horizontalScrollView = itemView.findViewById(R.id.horizontal_scrollview);
         }
     }
 
