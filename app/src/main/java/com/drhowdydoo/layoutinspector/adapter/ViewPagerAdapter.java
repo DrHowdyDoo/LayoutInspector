@@ -25,7 +25,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     private List<TreeNode> hierarchy = new ArrayList<>();
     private TreeViewAdapter treeViewAdapter;
-    private Context context;
+    private final Context context;
 
     public ViewPagerAdapter(Context context) {
         this.context = context;

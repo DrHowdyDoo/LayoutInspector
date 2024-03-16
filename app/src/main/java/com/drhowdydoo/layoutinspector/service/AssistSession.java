@@ -27,14 +27,16 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class AssistSession extends VoiceInteractionSession {
 
     private static final String TAG = "AssistSession";
     private AssistStructure assistStructure;
-    private Animation slideUpAnimation;
+    private Animation slideUpAnimation, slideDownAnimation, fadeOut;
     private MaterialCardView mCardView;
     private View mAssistantView;
     private ViewPager2 viewPager;
+    private TabLayout tabLayout;
     private ViewPagerAdapter viewPagerAdapter;
     private List<TreeNode> hierarchy = new ArrayList<>();
     private MaterialButton btnTreeExpand;
@@ -71,14 +73,32 @@ public class AssistSession extends VoiceInteractionSession {
     public View onCreateContentView() {
         LayoutInflater inflater = getLayoutInflater();
         mAssistantView = inflater.inflate(R.layout.assistant_layout, null);
-        slideUpAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
         mCardView = mAssistantView.findViewById(R.id.card_bg);
         viewPager = mAssistantView.findViewById(R.id.viewPager);
         btnTreeExpand = mAssistantView.findViewById(R.id.btnTreeExpand);
-        TabLayout tabLayout = mAssistantView.findViewById(R.id.tabLayout);
+        tabLayout = mAssistantView.findViewById(R.id.tabLayout);
+        setUpAnimations();
+        setUpViewPagerWithTab();
+        setUpClickListeners();
+
+        return mAssistantView;
+    }
+
+    private void showExpandAllButton(boolean showButton) {
+        if (showButton) btnTreeExpand.setVisibility(View.VISIBLE);
+        else btnTreeExpand.setVisibility(View.GONE);
+    }
+
+    private void setUpAnimations() {
+        slideUpAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
+        slideDownAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_down);
+        fadeOut = AnimationUtils.loadAnimation(getContext(), R.anim.fade_out);
+    }
+
+    private void setUpViewPagerWithTab() {
         viewPagerAdapter = new ViewPagerAdapter(getContext());
         viewPager.setAdapter(viewPagerAdapter);
-        new TabLayoutMediator(tabLayout,viewPager, (tab, position) -> {
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             if (position == 0) {
                 tab.setText("Component");
                 showExpandAllButton(false);
@@ -94,34 +114,33 @@ public class AssistSession extends VoiceInteractionSession {
                 showExpandAllButton(position != 0);
             }
         });
+    }
 
+    private void setUpClickListeners() {
         btnTreeExpand.setOnClickListener(v -> {
             viewPagerAdapter.setTreeExpanded(!isTreeExpanded);
             isTreeExpanded = !isTreeExpanded;
             if (isTreeExpanded) {
-                btnTreeExpand.setIcon(AppCompatResources.getDrawable(getContext(),R.drawable.rounded_collapse_all_24));
-            }else {
-                btnTreeExpand.setIcon(AppCompatResources.getDrawable(getContext(),R.drawable.rounded_expand_all_24));
+                btnTreeExpand.setIcon(AppCompatResources.getDrawable(getContext(), R.drawable.rounded_collapse_all_24));
+            } else {
+                btnTreeExpand.setIcon(AppCompatResources.getDrawable(getContext(), R.drawable.rounded_expand_all_24));
             }
         });
-        return mAssistantView;
-    }
-
-    private void showExpandAllButton(boolean showButton) {
-        if (showButton) btnTreeExpand.setVisibility(View.VISIBLE);
-        else btnTreeExpand.setVisibility(View.GONE);
     }
 
     @Override
     public void onShow(@Nullable Bundle args, int showFlags) {
+        Log.d(TAG, "onShow: ");
         mAssistantView.setVisibility(View.VISIBLE);
-        mCardView.setAnimation(slideUpAnimation);
+        mCardView.startAnimation(slideUpAnimation);
         super.onShow(args, showFlags);
     }
 
     @Override
     public void onHide() {
+        Log.d(TAG, "onHide: ");
         mAssistantView.setVisibility(View.INVISIBLE);
+        mCardView.startAnimation(slideDownAnimation);
         super.onHide();
     }
 }
