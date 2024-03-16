@@ -2,4 +2,12 @@
     <string name="app_name">Layout Inspector</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="layout_inspector">Layout \nInspector</string>
+    <string name="welcome_text">Welcome to Layout Inspector, your go-to tool for effortless layout exploration! 🎉</string>
+    <string name="setup_text">In order to use Layout Inspector, you\'ll need to set it as your default assistant app.\nDon\'t worry, it\'s a simple process, and i\'ll guide you through it seamlessly.</string>
+    <string name="info_step_1">Open </string>
+    <string name="info_step_2">Choose Layout Inspector</string>
+    <string name="info_step_3">Enable Use text from screen\n(Required to get information on screen content, layout inspector can only access it when explicitly invoked by user and only for views not declared as secure.)</string>
+    <string name="info_step_4">Enable Use screenshot (Optional)</string>
+    <string name="btn_open_assist_setting">Default Digital Assistant App Settings</string>
 </resources>
