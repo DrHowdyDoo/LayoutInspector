@@ -25,7 +25,7 @@
         android:id="@+id/tvNode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="6dp"
+        android:layout_marginHorizontal="6dp"
         android:paddingVertical="4dp"
         tools:text="Text"
         android:textAppearance="@style/TextAppearance.Material3.BodyMedium">

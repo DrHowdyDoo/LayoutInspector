@@ -1,11 +1,13 @@
 package com.drhowdydoo.layoutinspector.service;
 
+import android.annotation.SuppressLint;
 import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.os.Bundle;
 import android.service.voice.VoiceInteractionSession;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -52,10 +54,9 @@ public class AssistSession extends VoiceInteractionSession {
         super.onHandleAssist(state);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             assistStructure = state.getAssistStructure();
-            Log.d("TAG", "onHandleAssist: " + assistStructure);
+            Log.d("TAG", "onHandleAssist: ");
             if (assistStructure != null) {
                 hierarchy = Utils.displayViewHierarchy(assistStructure);
-                Log.d("TAG", "onHandleAssist: Hierarchy " + hierarchy);
                 viewPagerAdapter.setHierarchyTree(hierarchy);
 
             }
@@ -95,6 +96,7 @@ public class AssistSession extends VoiceInteractionSession {
         fadeOut = AnimationUtils.loadAnimation(getContext(), R.anim.fade_out);
     }
 
+    @SuppressWarnings("ClickableViewAccessibility")
     private void setUpViewPagerWithTab() {
         viewPagerAdapter = new ViewPagerAdapter(getContext());
         viewPager.setAdapter(viewPagerAdapter);
