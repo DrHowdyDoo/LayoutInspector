@@ -10,4 +10,5 @@
     <string name="info_step_3">Enable Use text from screen\n(Required to get information on screen content, layout inspector can only access it when explicitly invoked by user and only for views not declared as secure.)</string>
     <string name="info_step_4">Enable Use screenshot (Optional)</string>
     <string name="btn_open_assist_setting">Default Digital Assistant App Settings</string>
+    <string name="gesture_instruction_info">Looks like you\'re all set 👍\n\nNow you can activate the layout inspector like google assistant.\nJust swipe up from a bottom corner to invoke Layout inspector app</string>
 </resources>
