@@ -34,7 +34,7 @@ public class AssistSession extends VoiceInteractionSession {
 
     private static final String TAG = "AssistSession";
     private AssistStructure assistStructure;
-    private Animation slideUpAnimation, slideDownAnimation, fadeOut;
+    private Animation slideUpAnimation, slideDownAnimation;
     private MaterialCardView mCardView;
     private View mAssistantView;
     private ViewPager2 viewPager;
@@ -93,7 +93,6 @@ public class AssistSession extends VoiceInteractionSession {
     private void setUpAnimations() {
         slideUpAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
         slideDownAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_down);
-        fadeOut = AnimationUtils.loadAnimation(getContext(), R.anim.fade_out);
     }
 
     @SuppressWarnings("ClickableViewAccessibility")
