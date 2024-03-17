@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -59,8 +60,17 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             ((HierarchyTabViewHolder) holder).recyclerView.setHasFixedSize(true);
             FlexibleLayoutManager flexibleLayoutManager = new FlexibleLayoutManager(context);
             ((HierarchyTabViewHolder) holder).recyclerView.setLayoutManager(flexibleLayoutManager);
-            if (hierarchy != null) treeViewAdapter.setTreeNodes(hierarchy);
-            treeViewAdapter.expandAll();
+            if (hierarchy != null) {
+                treeViewAdapter.setTreeNodes(hierarchy);
+                treeViewAdapter.expandAll();
+                if (hierarchy.isEmpty()) {
+                    ((HierarchyTabViewHolder) holder).tvEmptyTree.setVisibility(View.VISIBLE);
+                    ((HierarchyTabViewHolder) holder).recyclerView.setVisibility(View.GONE);
+                }else {
+                    ((HierarchyTabViewHolder) holder).tvEmptyTree.setVisibility(View.INVISIBLE);
+                    ((HierarchyTabViewHolder) holder).recyclerView.setVisibility(View.VISIBLE);
+                }
+            }
             ((HierarchyTabViewHolder) holder).recyclerView.setAdapter(treeViewAdapter);
             ((HierarchyTabViewHolder) holder).recyclerView.setItemAnimator(null);
         }
@@ -78,9 +88,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {
         RecyclerView recyclerView;
+        TextView tvEmptyTree;
         public HierarchyTabViewHolder(@NonNull View itemView) {
             super(itemView);
             recyclerView = itemView.findViewById(R.id.recycler_view);
+            tvEmptyTree = itemView.findViewById(R.id.tvEmptyTree);
         }
     }
 

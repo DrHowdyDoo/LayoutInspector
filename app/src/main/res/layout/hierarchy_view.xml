@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/horizontal_scrollview"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -11,5 +13,19 @@
             android:scrollbars="vertical|horizontal"
             android:scrollbarThumbVertical="@drawable/scroll_thumb"
             android:scrollbarThumbHorizontal="@drawable/scroll_thumb"/>
+
+        <TextView
+            android:id="@+id/tvEmptyTree"
+            android:visibility="gone"
+            tools:visibility="visible"
+            android:paddingHorizontal="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:drawablePadding="8dp"
+            android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+            android:text="@string/empty_treeview_msg"
+            app:drawableTopCompat="@drawable/rounded_disabled_visible_24" />
 
 </FrameLayout>

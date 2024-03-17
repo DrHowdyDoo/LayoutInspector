@@ -52,14 +52,15 @@ public class AssistSession extends VoiceInteractionSession {
     @Override
     public void onHandleAssist(@NonNull AssistState state) {
         super.onHandleAssist(state);
+        Log.d("TAG", "onHandleAssist: ");
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             assistStructure = state.getAssistStructure();
-            Log.d("TAG", "onHandleAssist: ");
             if (assistStructure != null) {
                 hierarchy = Utils.displayViewHierarchy(assistStructure);
-                viewPagerAdapter.setHierarchyTree(hierarchy);
-
+            } else {
+                hierarchy.clear();
             }
+            viewPagerAdapter.setHierarchyTree(hierarchy);
         }
     }
 
@@ -72,6 +73,7 @@ public class AssistSession extends VoiceInteractionSession {
     @SuppressWarnings("ClickableViewAccessibility")
     @Override
     public View onCreateContentView() {
+        Log.d("TAG", "onCreateContentView: ");
         LayoutInflater inflater = getLayoutInflater();
         mAssistantView = inflater.inflate(R.layout.assistant_layout, null);
         mCardView = mAssistantView.findViewById(R.id.card_bg);
@@ -86,6 +88,7 @@ public class AssistSession extends VoiceInteractionSession {
     }
 
     private void showExpandAllButton(boolean showButton) {
+        showButton = showButton && assistStructure != null;
         if (showButton) btnTreeExpand.setVisibility(View.VISIBLE);
         else btnTreeExpand.setVisibility(View.GONE);
     }
