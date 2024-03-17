@@ -62,6 +62,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             if (hierarchy != null) treeViewAdapter.setTreeNodes(hierarchy);
             treeViewAdapter.expandAll();
             ((HierarchyTabViewHolder) holder).recyclerView.setAdapter(treeViewAdapter);
+            ((HierarchyTabViewHolder) holder).recyclerView.setItemAnimator(null);
         }
     }
 

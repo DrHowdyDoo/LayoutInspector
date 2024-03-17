@@ -17,21 +17,41 @@ public class FlexibleLayoutManager extends LinearLayoutManager {
     @Override
     public void onLayoutCompleted(RecyclerView.State state) {
         super.onLayoutCompleted(state);
+        setMaxOffSet();
+    }
+
+    private void setMaxOffSet(){
+        int n = getChildCount();
+        maxOffset = 0;
+        for(int i=0; i<n; ++i) {
+            View view = getChildAt(i);
+            if (view != null) updateMaxOffset(view);
+        }
+        if(offset>maxOffset) offset = maxOffset;
+        offsetChildren();
+    }
+
+    private void offsetChildren() {
+        int n = getChildCount();
+        for(int i=0; i<n; ++i) {
+            View view = getChildAt(i);
+            view.setTranslationX(-offset);
+        }
+    }
+
+    private void updateMaxOffset(View view) {
+        int x = view.getRight();
+        int ownWidth = getWidth();
+        if(x>ownWidth) maxOffset = Math.max(maxOffset,x-ownWidth);
     }
 
     @Override
-    public void onScrollStateChanged(int state) {
-        super.onScrollStateChanged(state);
-        int n = getChildCount();
-        offset = 0;
-        maxOffset = 0;
-        int ownWidth = getWidth();
-        for(int i=0; i<n; ++i) {
-            View view = getChildAt(i);
-            int x = view.getRight();
-            if(x>ownWidth) maxOffset = Math.max(maxOffset,x-ownWidth) + 30;
-        }
+    public void addView(View child, int index) {
+        super.addView(child, index);
+        child.setTranslationX(-offset);
+        child.post(()->updateMaxOffset(child));
     }
+
 
     @Override
     public boolean canScrollHorizontally() {
