@@ -89,7 +89,14 @@ public class AssistSession extends VoiceInteractionSession {
     }
 
     private void setUpTouchListener() {
-
+        mAssistantView.setOnTouchListener(new View.OnTouchListener() {
+            @SuppressLint("ClickableViewAccessibility")
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Log.d(TAG, "onTouch: view: " + v);
+                return false;
+            }
+        });
     }
 
     private void showExpandAllButton(boolean showButton) {

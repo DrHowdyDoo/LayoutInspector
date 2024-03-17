@@ -29,6 +29,8 @@ public class HierarchyViewHolder extends TreeViewHolder {
             break;
             case "ImageView" : imgIcon.setBackgroundResource(R.drawable.image_view_icon);
             break;
+            case "ImageButton" : imgIcon.setBackgroundResource(R.drawable.image_button_icon);
+            break;
             case "LinearLayout" : imgIcon.setBackgroundResource(R.drawable.linear_layout_icon);
             break;
             case "RelativeLayout":imgIcon.setBackgroundResource(R.drawable.relative_layout_icon);
