@@ -83,11 +83,17 @@ public class AssistSession extends VoiceInteractionSession {
         setUpAnimations();
         setUpViewPagerWithTab();
         setUpClickListeners();
+        setUpTouchListener();
 
         return mAssistantView;
     }
 
+    private void setUpTouchListener() {
+
+    }
+
     private void showExpandAllButton(boolean showButton) {
+        Log.d(TAG, "showExpandAllButton: " + showButton);
         showButton = showButton && assistStructure != null;
         if (showButton) btnTreeExpand.setVisibility(View.VISIBLE);
         else btnTreeExpand.setVisibility(View.GONE);
@@ -105,10 +111,8 @@ public class AssistSession extends VoiceInteractionSession {
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             if (position == 0) {
                 tab.setText("Component");
-                showExpandAllButton(false);
             } else {
                 tab.setText("Hierarchy");
-                showExpandAllButton(true);
             }
         }).attach();
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {

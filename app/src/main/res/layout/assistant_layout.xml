@@ -8,9 +8,9 @@
     android:background="#14FFFFFF"
     android:visibility="invisible"
     tools:visibility="visible"
+    android:layout_gravity="bottom"
     android:animateLayoutChanges="true"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="12dp">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
     <com.google.android.material.card.MaterialCardView
@@ -19,6 +19,8 @@
         style="?attr/materialCardViewElevatedStyle"
         android:layout_width="match_parent"
         android:layout_height="268dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginHorizontal="12dp"
         android:layout_marginBottom="26dp"
         app:cardCornerRadius="24dp">
 
