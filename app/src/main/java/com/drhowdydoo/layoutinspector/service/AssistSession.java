@@ -116,9 +116,7 @@ public class AssistSession extends VoiceInteractionSession {
         MaterialButton btnPurple = settingsCard.findViewById(R.id.btnPurple);
         TextView tvViewTypeToShowBoundsFor = settingsCard.findViewById(R.id.tvViewTypeToShow);
 
-        tvViewTypeToShowBoundsFor.setOnClickListener(v -> {
-            showMenu(v, R.menu.popup_menu);
-        });
+        tvViewTypeToShowBoundsFor.setOnClickListener(v -> showMenu(v, R.menu.popup_menu));
 
         btnGreen.setOnClickListener(v -> {
             PreferenceManager.strokeColor = Color.GREEN;

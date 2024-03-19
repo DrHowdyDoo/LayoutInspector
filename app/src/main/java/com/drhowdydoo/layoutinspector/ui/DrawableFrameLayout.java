@@ -70,7 +70,6 @@ public class DrawableFrameLayout extends FrameLayout {
         super.onDraw(canvas);
         canvas.drawRect(rect, singleBoundPaint);
         if (PreferenceManager.showLayoutBounds) drawLayoutBounds(canvas);
-        else clearCanvas(canvas);
     }
 
     private void drawLayoutBounds(Canvas canvas) {
