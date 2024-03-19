@@ -130,7 +130,7 @@
             app:thumbHeight="32dp"
             android:value="2.5"
             android:valueFrom="1.0"
-            android:valueTo="6.0"
+            android:valueTo="6.5"
             android:stepSize="0.5"/>
 
     </LinearLayout>

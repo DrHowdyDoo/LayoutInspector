@@ -54,6 +54,8 @@ public class DrawableFrameLayout extends FrameLayout {
     }
 
     public void updatePaintAttributes() {
+        singleBoundPaint.setColor(PreferenceManager.strokeColor);
+        singleBoundPaint.setStrokeWidth(PreferenceManager.strokeWidth);
         multiBoundPaint.setColor(PreferenceManager.strokeColor);
         multiBoundPaint.setStrokeWidth(PreferenceManager.strokeWidth);
         invalidate();
