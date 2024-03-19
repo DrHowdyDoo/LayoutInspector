@@ -99,6 +99,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder = holder;
     }
 
+    public void resetComponentView(){
+        componentTabViewholder.containerComponentInfo.setVisibility(View.INVISIBLE);
+        componentTabViewholder.tvSelectComponent.setVisibility(View.VISIBLE);
+    }
+
     public void setComponent(AssistStructure.ViewNode viewNode){
 
         componentTabViewholder.containerComponentInfo.setVisibility(View.VISIBLE);
@@ -131,6 +136,16 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
         componentTabViewholder.tvAlpha.setText(String.valueOf(viewNode.getAlpha()));
         componentTabViewholder.tvElevation.setText(String.format("%s dp",Utils.pxToDp(context, (int) viewNode.getElevation())));
+        String visibility = viewNode.getVisibility() == View.VISIBLE ? "Visible" : "Invisible";
+        componentTabViewholder.tvVisibility.setText(visibility);
+        CharSequence contentDescription = viewNode.getContentDescription();
+        if (contentDescription == null || contentDescription.toString().isEmpty()) {
+            componentTabViewholder.containerContentDesc.setVisibility(View.GONE);
+        }
+        else {
+            componentTabViewholder.containerContentDesc.setVisibility(View.VISIBLE);
+            componentTabViewholder.tvContentDesc.setText(contentDescription);
+        }
 
     }
 
@@ -170,8 +185,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         ImageView imgComponentIcon;
         TextView tvPackage,tvWidth, tvHeight, tvComponentId,
                 tvComponentName,tvTextSize,tvTextColor,tvTextStyle,
-                tvAlpha, tvElevation;
-        LinearLayout containerTextAttribute,containerPackage,containerComponentInfo;
+                tvAlpha, tvElevation,tvVisibility,tvContentDesc;
+        LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc;
         TextView tvSelectComponent;
         public ComponentTabViewholder(@NonNull View itemView) {
             super(itemView);
@@ -190,6 +205,9 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             containerPackage = itemView.findViewById(R.id.containerPackage);
             tvAlpha = itemView.findViewById(R.id.tvAlpha);
             tvElevation = itemView.findViewById(R.id.tvElevation);
+            tvVisibility = itemView.findViewById(R.id.tvVisibility);
+            tvContentDesc = itemView.findViewById(R.id.tvContentDesc);
+            containerContentDesc = itemView.findViewById(R.id.containerContentDesc);
         }
     }
 

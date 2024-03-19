@@ -77,6 +77,7 @@ public class AssistSession extends VoiceInteractionSession {
     public void onHide() {
         Log.d(TAG, "onHide() ");
         mAssistantView.clearCanvas();
+        viewPagerAdapter.resetComponentView();
         mAssistantView.setVisibility(View.INVISIBLE);
         mCardView.startAnimation(slideDownAnimation);
         settingsCard.setVisibility(View.GONE);
