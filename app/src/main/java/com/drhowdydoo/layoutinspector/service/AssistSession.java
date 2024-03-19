@@ -76,6 +76,7 @@ public class AssistSession extends VoiceInteractionSession {
     @Override
     public void onHide() {
         Log.d(TAG, "onHide() ");
+        mAssistantView.clearCanvas();
         mAssistantView.setVisibility(View.INVISIBLE);
         mCardView.startAnimation(slideDownAnimation);
         settingsCard.setVisibility(View.GONE);
@@ -188,6 +189,9 @@ public class AssistSession extends VoiceInteractionSession {
                 hierarchy = Utils.displayViewHierarchy(assistStructure);
             }
             viewPagerAdapter.setHierarchyTree(hierarchy);
+            if (PreferenceManager.showLayoutBounds) {
+                showLayoutBounds();
+            }
         });
     }
 

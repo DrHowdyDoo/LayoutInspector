@@ -89,6 +89,10 @@ public class DrawableFrameLayout extends FrameLayout {
         invalidate();
     }
 
+    public void clearCanvas(){
+        layoutBounds.clear();
+        rect.set(0,0,0,0);
+    }
 
     public void updateLayoutBounds(List<Rect> layoutBounds) {
         this.layoutBounds = layoutBounds;
