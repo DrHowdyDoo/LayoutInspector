@@ -222,17 +222,30 @@ public class AssistSession extends VoiceInteractionSession {
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-//                if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
-//                    viewNodeStack = getViewNodeByCoordinates((int) event.getX(), (int) event.getY());
-//                    oldX = (int) event.getX();
-//                    oldY = (int) event.getY();
-//                }
-//                AssistStructure.ViewNode viewNode = viewNodeStack.pop();
-//                drawRect(Utils.viewNodeRectMap.get(viewNode));
-//                viewPagerAdapter.setComponent(viewNode);
+                if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
+                    viewNodeStack = getViewNodeByCoordinates((int) event.getX(), (int) event.getY());
+                    oldX = (int) event.getX();
+                    oldY = (int) event.getY();
+                }
+                AssistStructure.ViewNode viewNode = viewNodeStack.pop();
+                drawRect(Utils.viewNodeRectMap.get(viewNode));
+                viewPagerAdapter.setComponent(viewNode);
                 return false;
             }
         });
+    }
+
+    public static Stack<AssistStructure.ViewNode> getViewNodeByCoordinates(int x, int y) {
+        Stack<AssistStructure.ViewNode> viewNodeStack = new Stack<>();
+        for (Map.Entry<AssistStructure.ViewNode, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
+            Rect rect = entry.getValue();
+            if (rect.contains(x, y) && entry.getKey().getVisibility() == View.VISIBLE) {
+                Log.d(TAG, "getViewNodeByCoordinates: " + entry.getKey().getClassName());
+                viewNodeStack.push(entry.getKey());
+                if (entry.getKey().getChildCount() == 0) break;
+            }
+        }
+        return viewNodeStack;
     }
 
     private void showLayoutBounds(){
@@ -248,17 +261,6 @@ public class AssistSession extends VoiceInteractionSession {
 
     public void drawRect(Rect rect) {
        mAssistantView.drawRect(rect);
-    }
-
-    public static Stack<AssistStructure.ViewNode> getViewNodeByCoordinates(int x, int y) {
-        Stack<AssistStructure.ViewNode> viewNodeStack = new Stack<>();
-        for (Map.Entry<AssistStructure.ViewNode, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
-            Rect rect = entry.getValue();
-            if (rect.contains(x, y)) {
-                viewNodeStack.push(entry.getKey());
-            }
-        }
-        return viewNodeStack;
     }
 
 }

@@ -2,8 +2,6 @@ package com.drhowdydoo.layoutinspector.adapter;
 
 import android.app.assist.AssistStructure;
 import android.content.Context;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,8 +18,8 @@ import com.amrdeveloper.treeview.TreeViewHolderFactory;
 import com.drhowdydoo.layoutinspector.R;
 import com.drhowdydoo.layoutinspector.service.AssistSession;
 import com.drhowdydoo.layoutinspector.ui.DrawableManager;
-import com.drhowdydoo.layoutinspector.ui.TreeLayoutManager;
 import com.drhowdydoo.layoutinspector.ui.HierarchyViewHolder;
+import com.drhowdydoo.layoutinspector.ui.TreeLayoutManager;
 import com.drhowdydoo.layoutinspector.util.Utils;
 
 import java.util.ArrayList;
@@ -109,59 +107,53 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder.tvComponentName.setText(Utils.getLastSegmentOfClass(viewNode.getClassName()));
         String id = String.valueOf(viewNode.getIdEntry());
         if (!id.equalsIgnoreCase("null")) {
-            componentTabViewholder.tvComponentId.setText(id);
+            componentTabViewholder.tvComponentId.setText(String.format("id: %s",id));
+            componentTabViewholder.tvComponentId.setVisibility(View.VISIBLE);
         }else {
             componentTabViewholder.tvComponentId.setVisibility(View.GONE);
         }
         String packageName = viewNode.getIdPackage();
-        if (packageName != null && packageName.isEmpty()) {
-            componentTabViewholder.tvPackage.setVisibility(View.GONE);
+        if (packageName == null || packageName.isEmpty()) {
+            componentTabViewholder.containerPackage.setVisibility(View.GONE);
         } else {
             componentTabViewholder.tvPackage.setText(packageName);
+            componentTabViewholder.tvPackage.setVisibility(View.VISIBLE);
 
         }
         componentTabViewholder.tvWidth.setText(String.format("%s dp", Utils.pxToDp(context, viewNode.getWidth())));
         componentTabViewholder.tvHeight.setText(String.format("%s dp", Utils.pxToDp(context, viewNode.getHeight())));
         if (viewNode.getText() != null) {
             setTextAttribute(viewNode);
+            componentTabViewholder.containerTextAttribute.setVisibility(View.VISIBLE);
         }else {
             componentTabViewholder.containerTextAttribute.setVisibility(View.GONE);
         }
 
         componentTabViewholder.tvAlpha.setText(String.valueOf(viewNode.getAlpha()));
         componentTabViewholder.tvElevation.setText(String.format("%s dp",Utils.pxToDp(context, (int) viewNode.getElevation())));
-        Bundle bundle = viewNode.getExtras();
-        if (bundle != null) {
-            int textAppearance = bundle.getInt("android:textAppearance");
-            Log.d("TAG", "setComponent: " + textAppearance);
-        }
+
     }
 
     private void setTextAttribute(AssistStructure.ViewNode viewNode){
         componentTabViewholder.tvTextSize.setText(String.format("%s sp", Utils.pxToSp(context, (int) viewNode.getTextSize())));
         componentTabViewholder.tvTextColor.setText(Utils.intToHexString(viewNode.getTextColor()));
-        StringBuilder textStyles = getTextStyles(viewNode.getTextStyle());
-        componentTabViewholder.tvTextStyle.setText(textStyles.toString());
+        String textStyles = getTextStyles(viewNode.getTextStyle());
+        componentTabViewholder.tvTextStyle.setText(textStyles);
     }
 
     @NonNull
-    private static StringBuilder getTextStyles(int textStyle) {
+    private static String getTextStyles(int textStyle) {
         StringBuilder textStyles = new StringBuilder();
         if ((textStyle & AssistStructure.ViewNode.TEXT_STYLE_BOLD) != 0) textStyles.append("Bold").append(" ");
         if ((textStyle & AssistStructure.ViewNode.TEXT_STYLE_ITALIC) != 0) textStyles.append("Italic").append(" ");
         if ((textStyle & AssistStructure.ViewNode.TEXT_STYLE_UNDERLINE) != 0) textStyles.append("Underline").append(" ");
         if ((textStyle & AssistStructure.ViewNode.TEXT_STYLE_STRIKE_THRU) != 0) textStyles.append("StrikeThrough").append(" ");
-        return textStyles;
+        return textStyles.toString().isEmpty() ? "Normal" : textStyles.toString();
     }
 
     @Override
     public int getItemCount() {
         return 2;
-    }
-
-    public void setTreeExpanded(boolean expandTree) {
-        if (expandTree) treeViewAdapter.expandAll();
-        else treeViewAdapter.collapseAll();
     }
 
     public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {

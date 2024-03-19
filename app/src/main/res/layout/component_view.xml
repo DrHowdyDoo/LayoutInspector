@@ -238,6 +238,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:gravity="end|center_vertical"
+                        android:text="Normal"
                         android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                         tools:text="Bold" />
 
