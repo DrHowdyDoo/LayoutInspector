@@ -1,16 +1,15 @@
 package com.drhowdydoo.layoutinspector.ui;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.View;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class FlexibleLayoutManager extends LinearLayoutManager {
+public class TreeLayoutManager extends LinearLayoutManager {
     private int offset;
     private int maxOffset;
 
-    public FlexibleLayoutManager(Context context) {
+    public TreeLayoutManager(Context context) {
         super(context);
     }
 

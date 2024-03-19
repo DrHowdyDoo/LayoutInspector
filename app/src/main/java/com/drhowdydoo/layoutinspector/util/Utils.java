@@ -14,8 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 public class Utils {
-    private static final List<TreeNode> componentTree = new ArrayList<>();
     public static final Map<AssistStructure.ViewNode, Rect> viewNodeRectMap = new HashMap<>();
+    private static final List<TreeNode> componentTree = new ArrayList<>();
+    public static int statusBarOffset;
 
     public static List<TreeNode> displayViewHierarchy(AssistStructure assistStructure) {
         int windowNodeCount = assistStructure.getWindowNodeCount();
@@ -23,23 +24,32 @@ public class Utils {
         viewNodeRectMap.clear();
         for (int i = 0; i < windowNodeCount; i++) {
             AssistStructure.WindowNode windowNode = assistStructure.getWindowNodeAt(i);
-            displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0,null);
+            displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0, null, 0, -statusBarOffset);
         }
         return componentTree;
     }
-    private static void displayViewHierarchyRecursive(AssistStructure.ViewNode viewNode, int depth, TreeNode parent) {
 
-        TreeNode root = new TreeNode(getLastSegmentOfClass(viewNode.getClassName()),R.layout.hierarchy_tree_node);
-        if (parent != null) parent.addChild(root);
+    private static void displayViewHierarchyRecursive(AssistStructure.ViewNode viewNode, int depth, TreeNode parent, int leftOffset, int topOffset) {
+
+        TreeNode root = new TreeNode(viewNode, R.layout.hierarchy_tree_node);
+        if (parent != null) {
+            parent.addChild(root);
+        }
         componentTree.add(root);
-        viewNodeRectMap.put(viewNode,new Rect(viewNode.getLeft(),viewNode.getTop(),viewNode.getLeft() + viewNode.getWidth(), viewNode.getTop() + viewNode.getHeight()));
 
+        // Calculate absolute position
+        int left = leftOffset + viewNode.getLeft();
+        int top = topOffset + viewNode.getTop();
+        viewNodeRectMap.put(viewNode, new Rect(left, top, left + viewNode.getWidth(), top + viewNode.getHeight()));
+
+        // Traverse children
         if (viewNode.getChildCount() > 0) {
             for (int i = 0; i < viewNode.getChildCount(); i++) {
-                displayViewHierarchyRecursive(viewNode.getChildAt(i), depth + 1,root);
+                displayViewHierarchyRecursive(viewNode.getChildAt(i), depth + 1, root, left, top);
             }
         }
     }
+
 
     public static String getLastSegmentOfClass(String className) {
         if (className == null || className.isEmpty()) {

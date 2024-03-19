@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="component_attribute_row_gap">8dp</dimen>
+    <dimen name="component_attribute_padding_horizontal">14dp</dimen>
+</resources>
