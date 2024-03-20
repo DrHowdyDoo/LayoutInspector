@@ -4,6 +4,7 @@ import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
+import android.view.View;
 
 import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Utils {
-    public static final Map<AssistStructure.ViewNode, Rect> viewNodeRectMap = new HashMap<>();
+    public static final Map<ViewNodeWrapper, Rect> viewNodeRectMap = new HashMap<>();
     private static final List<TreeNode> componentTree = new ArrayList<>();
     public static int statusBarOffset;
 
@@ -24,12 +25,12 @@ public class Utils {
         viewNodeRectMap.clear();
         for (int i = 0; i < windowNodeCount; i++) {
             AssistStructure.WindowNode windowNode = assistStructure.getWindowNodeAt(i);
-            displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0, null, 0, -statusBarOffset);
+            displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0, null, 0, -statusBarOffset, true);
         }
         return componentTree;
     }
 
-    private static void displayViewHierarchyRecursive(AssistStructure.ViewNode viewNode, int depth, TreeNode parent, int leftOffset, int topOffset) {
+    private static void displayViewHierarchyRecursive(AssistStructure.ViewNode viewNode, int depth, TreeNode parent, int leftOffset, int topOffset, boolean isVisible) {
 
         TreeNode root = new TreeNode(viewNode, R.layout.hierarchy_tree_node);
         if (parent != null) {
@@ -40,12 +41,15 @@ public class Utils {
         // Calculate absolute position
         int left = leftOffset + viewNode.getLeft();
         int top = topOffset + viewNode.getTop();
-        viewNodeRectMap.put(viewNode, new Rect(left, top, left + viewNode.getWidth(), top + viewNode.getHeight()));
+        isVisible = isVisible & (viewNode.getVisibility() == View.VISIBLE);
+
+        ViewNodeWrapper viewNodeWrapper = new ViewNodeWrapper(viewNode, isVisible);
+        viewNodeRectMap.put(viewNodeWrapper, new Rect(left, top, left + viewNode.getWidth(), top + viewNode.getHeight()));
 
         // Traverse children
         if (viewNode.getChildCount() > 0) {
             for (int i = 0; i < viewNode.getChildCount(); i++) {
-                displayViewHierarchyRecursive(viewNode.getChildAt(i), depth + 1, root, left, top);
+                displayViewHierarchyRecursive(viewNode.getChildAt(i), depth + 1, root, left, top, isVisible);
             }
         }
     }

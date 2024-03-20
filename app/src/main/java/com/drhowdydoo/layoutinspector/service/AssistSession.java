@@ -27,6 +27,7 @@ import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
 import com.drhowdydoo.layoutinspector.ui.DrawableFrameLayout;
 import com.drhowdydoo.layoutinspector.util.PreferenceManager;
 import com.drhowdydoo.layoutinspector.util.Utils;
+import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -219,7 +220,7 @@ public class AssistSession extends VoiceInteractionSession {
     private void setUpTouchListener() {
 
         mAssistantView.setOnTouchListener(new View.OnTouchListener() {
-            Stack<AssistStructure.ViewNode> viewNodeStack;
+            Stack<ViewNodeWrapper> viewNodeStack;
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -228,24 +229,24 @@ public class AssistSession extends VoiceInteractionSession {
                     oldX = (int) event.getX();
                     oldY = (int) event.getY();
                 }
-                if (viewNodeStack.isEmpty()) return false;
-                AssistStructure.ViewNode viewNode = viewNodeStack.pop();
-                drawRect(Utils.viewNodeRectMap.get(viewNode));
-                viewPagerAdapter.setComponent(viewNode);
+                if (viewNodeStack == null || viewNodeStack.isEmpty()) return false;
+                ViewNodeWrapper viewNodeWrapper = viewNodeStack.pop();
+                drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
+                viewPagerAdapter.setComponent(viewNodeWrapper.getViewNode());
                 return false;
             }
         });
     }
 
-    public static Stack<AssistStructure.ViewNode> getViewNodeByCoordinates(int x, int y) {
-        Stack<AssistStructure.ViewNode> viewNodeStack = new Stack<>();
-        for (Map.Entry<AssistStructure.ViewNode, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
+    public static Stack<ViewNodeWrapper> getViewNodeByCoordinates(int x, int y) {
+        Stack<ViewNodeWrapper> viewNodeStack = new Stack<>();
+        for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
             Rect rect = entry.getValue();
             if (rect.contains(x, y)) {
-                if (entry.getKey().getVisibility() == View.INVISIBLE || Utils.getLastSegmentOfClass(entry.getKey().getClassName()).equalsIgnoreCase("view")) {
+                if (!entry.getKey().isVisible() || Utils.getLastSegmentOfClass(entry.getKey().getViewNode().getClassName()).equalsIgnoreCase("view")) {
                     continue;
                 }
-                Log.d(TAG, "getViewNodeByCoordinates: " + entry.getKey().getClassName());
+                Log.d(TAG, "getViewNodeByCoordinates: " + entry.getKey().getViewNode().getClassName());
                 viewNodeStack.push(entry.getKey());
             }
         }
@@ -254,8 +255,8 @@ public class AssistSession extends VoiceInteractionSession {
 
     private void showLayoutBounds(){
             List<Rect> layoutBounds = new ArrayList<>();
-            for (Map.Entry<AssistStructure.ViewNode, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
-                if (PreferenceManager.viewTypeToShowBoundsOf < 0 || entry.getKey().getVisibility() == PreferenceManager.viewTypeToShowBoundsOf) {
+            for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
+                if (PreferenceManager.viewTypeToShowBoundsOf < 0 || entry.getKey().showViewNode(PreferenceManager.viewTypeToShowBoundsOf)) {
                     Rect rect = entry.getValue();
                     layoutBounds.add(rect);
                 }
