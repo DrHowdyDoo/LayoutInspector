@@ -8,94 +8,99 @@
     android:background="#0AFFFFFF"
     android:visibility="invisible"
     tools:visibility="visible"
-    android:layout_gravity="bottom"
     android:animateLayoutChanges="true"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_bg"
-        android:layout_gravity="bottom|center_horizontal"
-        style="?attr/materialCardViewFilledStyle"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="272dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginBottom="32dp"
-        app:cardBackgroundColor="?colorSurface"
-        app:cardCornerRadius="28dp">
+        android:layout_height="match_parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_bg"
+            style="?attr/materialCardViewFilledStyle"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingVertical="8dp"
-            android:paddingHorizontal="4dp"
-            android:gravity="center_horizontal"
-            android:orientation="vertical">
+            android:layout_height="272dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginHorizontal="12dp"
+            app:cardBackgroundColor="?colorSurface"
+            app:cardCornerRadius="28dp"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/tabLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="42dp"
-                android:background="@drawable/tab_indicator"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tabGravity="center"
-                app:tabIndicator="@drawable/tab_indicator"
-                app:tabIndicatorColor="?colorSurfaceContainer"
-                app:tabIndicatorFullWidth="true"
-                app:tabIndicatorGravity="center"
-                app:tabIndicatorHeight="42dp"
-                app:tabSelectedTextColor="?colorOnBackground">
-
-                <com.google.android.material.tabs.TabItem
-                    android:id="@+id/componentTab"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Component" />
-
-                <com.google.android.material.tabs.TabItem
-                    android:id="@+id/hierarchyTab"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hierarchy" />
-
-            </com.google.android.material.tabs.TabLayout>
-
-            <androidx.viewpager2.widget.ViewPager2
-                android:id="@+id/viewPager"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:animateLayoutChanges="true"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tabLayout" />
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="8dp">
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="42dp"
+                    android:background="@drawable/tab_indicator"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tabGravity="center"
+                    app:tabIndicator="@drawable/tab_indicator"
+                    app:tabIndicatorColor="?colorSurfaceContainer"
+                    app:tabIndicatorFullWidth="true"
+                    app:tabIndicatorGravity="center"
+                    app:tabIndicatorHeight="42dp"
+                    app:tabSelectedTextColor="?colorOnBackground">
+
+                    <com.google.android.material.tabs.TabItem
+                        android:id="@+id/componentTab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Component" />
+
+                    <com.google.android.material.tabs.TabItem
+                        android:id="@+id/hierarchyTab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Hierarchy" />
+
+                </com.google.android.material.tabs.TabLayout>
+
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/viewPager"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:animateLayoutChanges="true"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tabLayout" />
 
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSetting"
-                style="?materialIconButtonOutlinedStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end|top"
-                app:icon="@drawable/rounded_settings_24"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetting"
+                    style="?materialIconButtonOutlinedStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|top"
+                    app:icon="@drawable/rounded_settings_24"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </com.google.android.material.card.MaterialCardView>
+        </com.google.android.material.card.MaterialCardView>
 
-    <include
-        android:id="@+id/settings_layout"
-        android:visibility="invisible"
-        tools:visibility="visible"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="320dp"
-        android:layout_marginHorizontal="12dp"
-        layout="@layout/settings_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        <include
+            android:id="@+id/settings_layout"
+            layout="@layout/settings_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="16dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@+id/card_bg"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 </com.drhowdydoo.layoutinspector.ui.DrawableFrameLayout>

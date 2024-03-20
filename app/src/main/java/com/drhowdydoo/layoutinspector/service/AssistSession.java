@@ -107,7 +107,6 @@ public class AssistSession extends VoiceInteractionSession {
         tabLayout = mAssistantView.findViewById(R.id.tabLayout);
         settingsCard = mAssistantView.findViewById(R.id.settings_layout);
 
-
         setUpAnimations();
         setUpViewPagerWithTab();
         setUpClickListeners();
@@ -116,6 +115,7 @@ public class AssistSession extends VoiceInteractionSession {
 
         return mAssistantView;
     }
+
 
     private void setUpSettings() {
         Slider widthSlider = settingsCard.findViewById(R.id.widthSlider);
