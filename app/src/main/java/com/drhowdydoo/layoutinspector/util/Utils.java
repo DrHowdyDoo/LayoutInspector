@@ -30,7 +30,12 @@ public class Utils {
         return componentTree;
     }
 
-    private static void displayViewHierarchyRecursive(AssistStructure.ViewNode viewNode, int depth, TreeNode parent, int leftOffset, int topOffset, boolean isVisible) {
+    private static void displayViewHierarchyRecursive(AssistStructure.ViewNode viewNode,
+                                                      int depth,
+                                                      TreeNode parent,
+                                                      int leftOffset,
+                                                      int topOffset,
+                                                      boolean isVisible) {
 
         isVisible = isVisible & (viewNode.getVisibility() == View.VISIBLE);
         ViewNodeWrapper viewNodeWrapper = new ViewNodeWrapper(viewNode, isVisible);
@@ -44,8 +49,8 @@ public class Utils {
         // Calculate absolute position
         int left = leftOffset + viewNode.getLeft();
         int top = topOffset + viewNode.getTop();
-
-        viewNodeRectMap.put(viewNodeWrapper, new Rect(left, top, left + viewNode.getWidth(), top + viewNode.getHeight()));
+        Rect rect = new Rect(left, top, left + viewNode.getWidth(), top + viewNode.getHeight());
+        viewNodeRectMap.put(viewNodeWrapper, rect);
 
         // Traverse children
         if (viewNode.getChildCount() > 0) {
