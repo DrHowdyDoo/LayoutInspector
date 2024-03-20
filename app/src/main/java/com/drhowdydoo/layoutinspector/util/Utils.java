@@ -80,6 +80,11 @@ public class Utils {
         return Math.round(px / scaledDensity);
     }
 
+    public static int dpToPx(Context context, float dp) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return Math.round(dp * displayMetrics.density);
+    }
+
     public static String intToHexString(int color) {
         return String.format("#%06X", (0xFFFFFF & color));
     }

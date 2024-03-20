@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.PopupMenu;
@@ -22,6 +23,11 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.transition.AutoTransition;
+import androidx.transition.ChangeBounds;
+import androidx.transition.Slide;
+import androidx.transition.Transition;
+import androidx.transition.TransitionManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.amrdeveloper.treeview.TreeNode;
@@ -54,11 +60,14 @@ public class AssistSession extends VoiceInteractionSession {
     private TabLayout tabLayout;
     private ViewPagerAdapter viewPagerAdapter;
     private List<TreeNode> hierarchy = new ArrayList<>();
-    private MaterialButton btnSettings;
+    private MaterialButton btnSettings,btnExpandCollapse;
     private boolean isSettingsShown = false;
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
     private int oldX = 0, oldY = 0;
+    private boolean isExpanded = true;
+    private Transition changeBoundTransition;
+    private Transition autoTransition, slideAnimation;
 
     public AssistSession(Context context) {
         super(context);
@@ -106,6 +115,7 @@ public class AssistSession extends VoiceInteractionSession {
         btnSettings = mAssistantView.findViewById(R.id.btnSetting);
         tabLayout = mAssistantView.findViewById(R.id.tabLayout);
         settingsCard = mAssistantView.findViewById(R.id.settings_layout);
+        btnExpandCollapse = mAssistantView.findViewById(R.id.btnExpandCollapse);
 
         setUpAnimations();
         setUpViewPagerWithTab();
@@ -213,6 +223,9 @@ public class AssistSession extends VoiceInteractionSession {
     private void setUpAnimations() {
         slideUpAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
         slideDownAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_down);
+        changeBoundTransition = new ChangeBounds();
+        autoTransition = new AutoTransition();
+        slideAnimation = new Slide();
     }
 
     @SuppressWarnings("ClickableViewAccessibility")
@@ -224,10 +237,38 @@ public class AssistSession extends VoiceInteractionSession {
 
     private void setUpClickListeners() {
         btnSettings.setOnClickListener(v -> {
+            TransitionManager.beginDelayedTransition(settingsCard, autoTransition);
             settingsCard.setVisibility(isSettingsShown ? View.GONE : View.VISIBLE);
             isSettingsShown = !isSettingsShown;
         });
+
+        btnExpandCollapse.setOnClickListener(v -> {
+            TransitionManager.beginDelayedTransition(settingsCard, autoTransition);
+            if (isExpanded) {
+                collapseCardView();
+                btnExpandCollapse.setIconResource(R.drawable.rounded_keyboard_arrow_up_24);
+            } else {
+                expandCardView();
+                btnExpandCollapse.setIconResource(R.drawable.rounded_keyboard_arrow_down_24);
+            }
+            isExpanded = !isExpanded;
+        });
     }
+
+    private void expandCardView() {
+        TransitionManager.beginDelayedTransition(mCardView, changeBoundTransition);
+        ViewGroup.LayoutParams layoutParams = mCardView.getLayoutParams();
+        layoutParams.height = Utils.dpToPx(getContext(), 272);
+        mCardView.setLayoutParams(layoutParams);
+    }
+
+    private void collapseCardView() {
+        TransitionManager.beginDelayedTransition(mCardView, changeBoundTransition);
+        ViewGroup.LayoutParams layoutParams = mCardView.getLayoutParams();
+        layoutParams.height = Utils.dpToPx(getContext(), 60);
+        mCardView.setLayoutParams(layoutParams);
+    }
+
 
     @SuppressWarnings("ClickableViewAccessibility")
     private void setUpTouchListener() {
