@@ -32,7 +32,10 @@ public class Utils {
 
     private static void displayViewHierarchyRecursive(AssistStructure.ViewNode viewNode, int depth, TreeNode parent, int leftOffset, int topOffset, boolean isVisible) {
 
-        TreeNode root = new TreeNode(viewNode, R.layout.hierarchy_tree_node);
+        isVisible = isVisible & (viewNode.getVisibility() == View.VISIBLE);
+        ViewNodeWrapper viewNodeWrapper = new ViewNodeWrapper(viewNode, isVisible);
+
+        TreeNode root = new TreeNode(viewNodeWrapper, R.layout.hierarchy_tree_node);
         if (parent != null) {
             parent.addChild(root);
         }
@@ -41,9 +44,7 @@ public class Utils {
         // Calculate absolute position
         int left = leftOffset + viewNode.getLeft();
         int top = topOffset + viewNode.getTop();
-        isVisible = isVisible & (viewNode.getVisibility() == View.VISIBLE);
 
-        ViewNodeWrapper viewNodeWrapper = new ViewNodeWrapper(viewNode, isVisible);
         viewNodeRectMap.put(viewNodeWrapper, new Rect(left, top, left + viewNode.getWidth(), top + viewNode.getHeight()));
 
         // Traverse children

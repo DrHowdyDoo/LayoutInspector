@@ -1,6 +1,9 @@
 package com.drhowdydoo.layoutinspector.ui;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -12,8 +15,6 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.drhowdydoo.layoutinspector.util.PreferenceManager;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class DrawableFrameLayout extends FrameLayout {
     private Paint singleBoundPaint, multiBoundPaint;
     private Rect rect = new Rect();
     private List<Rect> layoutBounds = new ArrayList<>();
+    private SharedPreferences preferences;
+
 
     public DrawableFrameLayout(@NonNull Context context) {
         super(context);
@@ -30,17 +33,24 @@ public class DrawableFrameLayout extends FrameLayout {
     }
 
     private void init() {
+
+        preferences = getContext().getSharedPreferences("com.drhowdydoo.layoutinspector.preferences", MODE_PRIVATE);
+        int strokeColor = preferences.getInt("SETTINGS_STROKE_COLOR", Color.GREEN);
+        float strokeWidth = preferences.getFloat("SETTINGS_STROKE_WIDTH", 2.5f);
+
         singleBoundPaint = new Paint();
         singleBoundPaint.setAntiAlias(true);
-        singleBoundPaint.setColor(Color.GREEN);
+        singleBoundPaint.setColor(strokeColor);
         singleBoundPaint.setStyle(Paint.Style.STROKE);
-        singleBoundPaint.setStrokeWidth(5.5f);
+        singleBoundPaint.setStrokeWidth(strokeWidth);
 
         multiBoundPaint = new Paint();
         multiBoundPaint.setAntiAlias(true);
-        multiBoundPaint.setColor(Color.GREEN);
+        multiBoundPaint.setColor(strokeColor);
         multiBoundPaint.setStyle(Paint.Style.STROKE);
-        multiBoundPaint.setStrokeWidth(2.5f);
+        multiBoundPaint.setStrokeWidth(strokeWidth);
+
+
     }
 
     public DrawableFrameLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -54,10 +64,12 @@ public class DrawableFrameLayout extends FrameLayout {
     }
 
     public void updatePaintAttributes() {
-        singleBoundPaint.setColor(PreferenceManager.strokeColor);
-        singleBoundPaint.setStrokeWidth(PreferenceManager.strokeWidth);
-        multiBoundPaint.setColor(PreferenceManager.strokeColor);
-        multiBoundPaint.setStrokeWidth(PreferenceManager.strokeWidth);
+        int strokeColor = preferences.getInt("SETTINGS_STROKE_COLOR", Color.GREEN);
+        float strokeWidth = preferences.getFloat("SETTINGS_STROKE_WIDTH", 2.5f);
+        singleBoundPaint.setColor(strokeColor);
+        singleBoundPaint.setStrokeWidth(strokeWidth);
+        multiBoundPaint.setColor(strokeColor);
+        multiBoundPaint.setStrokeWidth(strokeWidth);
         invalidate();
     }
 
@@ -70,8 +82,9 @@ public class DrawableFrameLayout extends FrameLayout {
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawRect(rect, singleBoundPaint);
-        if (PreferenceManager.showLayoutBounds) drawLayoutBounds(canvas);
+        if (rect != null) canvas.drawRect(rect, singleBoundPaint);
+        boolean showLayoutBounds = preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false);
+        if (showLayoutBounds) drawLayoutBounds(canvas);
     }
 
     private void drawLayoutBounds(Canvas canvas) {

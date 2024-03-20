@@ -1,8 +1,11 @@
 package com.drhowdydoo.layoutinspector.service;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.annotation.SuppressLint;
 import android.app.assist.AssistStructure;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Build;
@@ -25,7 +28,6 @@ import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
 import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
 import com.drhowdydoo.layoutinspector.ui.DrawableFrameLayout;
-import com.drhowdydoo.layoutinspector.util.PreferenceManager;
 import com.drhowdydoo.layoutinspector.util.Utils;
 import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
 import com.google.android.material.button.MaterialButton;
@@ -54,6 +56,8 @@ public class AssistSession extends VoiceInteractionSession {
     private List<TreeNode> hierarchy = new ArrayList<>();
     private MaterialButton btnSettings;
     private boolean isSettingsShown = false;
+    private SharedPreferences preferences;
+    private SharedPreferences.Editor editor;
     private int oldX = 0, oldY = 0;
 
     public AssistSession(Context context) {
@@ -63,6 +67,8 @@ public class AssistSession extends VoiceInteractionSession {
     @Override
     public void onCreate() {
         getContext().setTheme(R.style.Theme_AppPeek);
+        preferences = getContext().getSharedPreferences("com.drhowdydoo.layoutinspector.preferences", MODE_PRIVATE);
+        editor = preferences.edit();
         super.onCreate();
     }
 
@@ -101,6 +107,7 @@ public class AssistSession extends VoiceInteractionSession {
         tabLayout = mAssistantView.findViewById(R.id.tabLayout);
         settingsCard = mAssistantView.findViewById(R.id.settings_layout);
 
+
         setUpAnimations();
         setUpViewPagerWithTab();
         setUpClickListeners();
@@ -121,33 +128,38 @@ public class AssistSession extends VoiceInteractionSession {
 
         tvViewTypeToShowBoundsFor.setOnClickListener(v -> showMenu(v, R.menu.popup_menu));
 
+        widthSlider.setValue(preferences.getFloat("SETTINGS_STROKE_WIDTH",2.5f));
+        switchLayoutBounds.setChecked(preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS",false));
+        int viewType = preferences.getInt("SETTINGS_VIEW_TYPE",View.VISIBLE);
+        tvViewTypeToShowBoundsFor.setText(viewType < 0 ? "All" : viewType == View.VISIBLE ? "Visible views" : "Invisible views");
+
         btnGreen.setOnClickListener(v -> {
-            PreferenceManager.strokeColor = Color.GREEN;
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.GREEN).apply();
             mAssistantView.updatePaintAttributes();
         });
 
         btnRed.setOnClickListener(v -> {
-            PreferenceManager.strokeColor = Color.RED;
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.RED).apply();
             mAssistantView.updatePaintAttributes();
         });
 
         btnBlue.setOnClickListener(v -> {
-            PreferenceManager.strokeColor = Color.BLUE;
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.BLUE).apply();
             mAssistantView.updatePaintAttributes();
         });
 
         btnPurple.setOnClickListener(v -> {
-            PreferenceManager.strokeColor = Color.MAGENTA;
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.MAGENTA).apply();
             mAssistantView.updatePaintAttributes();
         });
 
         widthSlider.addOnChangeListener((rangeSlider, value, fromUser) -> {
-            PreferenceManager.strokeWidth = value;
+            editor.putFloat("SETTINGS_STROKE_WIDTH",value).apply();
             mAssistantView.updatePaintAttributes();
         });
 
         switchLayoutBounds.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            PreferenceManager.showLayoutBounds = isChecked;
+            editor.putBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", isChecked).apply();
             if (isChecked) showLayoutBounds();
             mAssistantView.invalidate();
         });
@@ -159,7 +171,8 @@ public class AssistSession extends VoiceInteractionSession {
 
         popup.setOnMenuItemClickListener(menuItem -> {
             int menuId = menuItem.getItemId();
-            PreferenceManager.viewTypeToShowBoundsOf = menuId == R.id.all ? -1 : menuId == R.id.visible ? View.VISIBLE : View.INVISIBLE;
+            int viewType = menuId == R.id.all ? -1 : menuId == R.id.visible ? View.VISIBLE : View.INVISIBLE;
+            editor.putInt("SETTINGS_VIEW_TYPE",viewType).apply();
             ((TextView) v).setText(menuItem.getTitle());
             showLayoutBounds();
             mAssistantView.invalidate();
@@ -191,7 +204,7 @@ public class AssistSession extends VoiceInteractionSession {
                 hierarchy = Utils.displayViewHierarchy(assistStructure);
             }
             viewPagerAdapter.setHierarchyTree(hierarchy);
-            if (PreferenceManager.showLayoutBounds) {
+            if (preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false)) {
                 showLayoutBounds();
             }
         });
@@ -255,8 +268,9 @@ public class AssistSession extends VoiceInteractionSession {
 
     private void showLayoutBounds(){
             List<Rect> layoutBounds = new ArrayList<>();
+            int viewType = preferences.getInt("SETTINGS_VIEW_TYPE",View.VISIBLE);
             for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
-                if (PreferenceManager.viewTypeToShowBoundsOf < 0 || entry.getKey().showViewNode(PreferenceManager.viewTypeToShowBoundsOf)) {
+                if (viewType < 0 || entry.getKey().showViewNode(viewType)) {
                     Rect rect = entry.getValue();
                     layoutBounds.add(rect);
                 }

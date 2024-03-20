@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import com.amrdeveloper.treeview.TreeNode;
 import com.amrdeveloper.treeview.TreeViewHolder;
 import com.drhowdydoo.layoutinspector.R;
+import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
 
 public class HierarchyViewHolder extends TreeViewHolder {
     TextView tvNode;
@@ -25,7 +26,8 @@ public class HierarchyViewHolder extends TreeViewHolder {
     @Override
     public void bindTreeNode(TreeNode node) {
         super.bindTreeNode(node);
-        AssistStructure.ViewNode viewNode = (AssistStructure.ViewNode) node.getValue();
+        ViewNodeWrapper viewNodeWrapper = (ViewNodeWrapper) node.getValue();
+        AssistStructure.ViewNode viewNode = viewNodeWrapper.getViewNode();
         tvNode.setText(getLastSegmentOfClass(viewNode.getClassName()));
         imgIcon.setBackgroundResource(DrawableManager.getDrawableForView(getLastSegmentOfClass(viewNode.getClassName())));
         imgArrow.setBackgroundResource(node.isExpanded() ? R.drawable.rounded_arrow_drop_down_24 : R.drawable.rounded_arrow_right_24);

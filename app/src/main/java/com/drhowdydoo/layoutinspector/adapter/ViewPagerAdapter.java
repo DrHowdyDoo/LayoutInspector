@@ -21,6 +21,7 @@ import com.drhowdydoo.layoutinspector.ui.DrawableManager;
 import com.drhowdydoo.layoutinspector.ui.HierarchyViewHolder;
 import com.drhowdydoo.layoutinspector.ui.TreeLayoutManager;
 import com.drhowdydoo.layoutinspector.util.Utils;
+import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,8 +90,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         holder.recyclerView.setAdapter(treeViewAdapter);
         holder.recyclerView.setItemAnimator(null);
         treeViewAdapter.setTreeNodeClickListener((treeNode, view) -> {
-            AssistStructure.ViewNode viewNode = (AssistStructure.ViewNode) treeNode.getValue();
-            assistSession.drawRect(Utils.viewNodeRectMap.get(viewNode));
+            ViewNodeWrapper viewNodeWrapper = (ViewNodeWrapper) treeNode.getValue();
+            assistSession.drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
         });
     }
 
