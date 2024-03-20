@@ -228,6 +228,7 @@ public class AssistSession extends VoiceInteractionSession {
                     oldX = (int) event.getX();
                     oldY = (int) event.getY();
                 }
+                if (viewNodeStack.isEmpty()) return false;
                 AssistStructure.ViewNode viewNode = viewNodeStack.pop();
                 drawRect(Utils.viewNodeRectMap.get(viewNode));
                 viewPagerAdapter.setComponent(viewNode);
@@ -240,10 +241,12 @@ public class AssistSession extends VoiceInteractionSession {
         Stack<AssistStructure.ViewNode> viewNodeStack = new Stack<>();
         for (Map.Entry<AssistStructure.ViewNode, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
             Rect rect = entry.getValue();
-            if (rect.contains(x, y) && entry.getKey().getVisibility() == View.VISIBLE) {
+            if (rect.contains(x, y)) {
+                if (entry.getKey().getVisibility() == View.INVISIBLE || Utils.getLastSegmentOfClass(entry.getKey().getClassName()).equalsIgnoreCase("view")) {
+                    continue;
+                }
                 Log.d(TAG, "getViewNodeByCoordinates: " + entry.getKey().getClassName());
                 viewNodeStack.push(entry.getKey());
-                if (entry.getKey().getChildCount() == 0) break;
             }
         }
         return viewNodeStack;
