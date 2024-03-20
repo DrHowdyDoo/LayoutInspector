@@ -29,6 +29,7 @@ public class DrawableManager {
             case "ViewGroup":
                 return R.drawable.viewgroup_icon;
             case "Slider":
+            case "SeekBar" :
                 return R.drawable.slider_icon;
             case "ScrollView":
                 return R.drawable.scroll_view_icon;
@@ -37,12 +38,13 @@ public class DrawableManager {
             case "NestedScrollView":
                 return R.drawable.nested_scroll_view_icon;
             case "CheckBox":
-                return R.drawable.checkbox_icon;
             case "MaterialCheckBox":
             case "AppCompatCheckBox":
+                return R.drawable.checkbox_icon;
             case "MaterialSwitch":
             case "SwitchMaterial":
             case "SwitchCompat":
+            case "CompoundButton" :
             case "Switch":
                 return R.drawable.switch_icon;
             default:
