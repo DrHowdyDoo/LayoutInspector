@@ -237,6 +237,7 @@ public class AssistSession extends VoiceInteractionSession {
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                Log.d(TAG, "onTouch: X : " + event.getX() + "Y : " + event.getY());
                 if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
                     viewNodeStack = getViewNodeByCoordinates((int) event.getX(), (int) event.getY());
                     oldX = (int) event.getX();
@@ -261,6 +262,7 @@ public class AssistSession extends VoiceInteractionSession {
                 }
                 Log.d(TAG, "getViewNodeByCoordinates: " + entry.getKey().getViewNode().getClassName());
                 viewNodeStack.push(entry.getKey());
+                if (entry.getKey().getViewNode().getChildCount() == 0) break;
             }
         }
         return viewNodeStack;
