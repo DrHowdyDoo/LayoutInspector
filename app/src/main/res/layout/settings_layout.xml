@@ -25,41 +25,48 @@
             android:gravity="center"
             android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
 
-        <LinearLayout
+        <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content">
 
-            <com.google.android.material.materialswitch.MaterialSwitch
-                android:id="@+id/switchShowLayoutBounds"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:text="Show all layout bounds"/>
+                android:layout_marginTop="28dp"
+                android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="for"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="8dp"
-                android:textStyle="italic"
-                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switchShowLayoutBounds"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start"
+                    android:text="Show all layout bounds"/>
 
-            <TextView
-                android:layout_weight="1"
-                android:id="@+id/tvViewTypeToShow"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical|start"
-                android:text="Visible views"
-                android:layout_marginStart="8dp"
-                android:layout_gravity="center_vertical"
-                android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="for"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:textStyle="italic"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
 
-        </LinearLayout>
+                <TextView
+                    android:layout_weight="1"
+                    android:id="@+id/tvViewTypeToShow"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical|start"
+                    android:text="Visible views"
+                    android:layout_marginStart="8dp"
+                    android:layout_gravity="center_vertical"
+                    android:textStyle="bold"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
 
 
 
@@ -70,54 +77,62 @@
             android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
             android:text="Layout bounds color"/>
 
-        <LinearLayout
+        <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:gravity="start"
-            android:orientation="horizontal">
+            android:scrollbars="none">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnGreen"
-                style="?materialIconButtonOutlinedStyle"
-                app:icon="@drawable/ic_round"
-                android:layout_marginHorizontal="8dp"
-                app:iconTint="@android:color/holo_green_light"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                />
+                android:layout_marginTop="4dp"
+                android:gravity="start"
+                android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRed"
-                style="?materialIconButtonOutlinedStyle"
-                app:icon="@drawable/ic_round"
-                android:layout_marginHorizontal="8dp"
-                app:iconTint="@android:color/holo_red_light"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGreen"
+                    style="?materialIconButtonOutlinedStyle"
+                    app:icon="@drawable/ic_round"
+                    android:layout_marginHorizontal="8dp"
+                    app:iconTint="@android:color/holo_green_light"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBlue"
-                style="?materialIconButtonOutlinedStyle"
-                app:icon="@drawable/ic_round"
-                android:layout_marginHorizontal="8dp"
-                app:iconTint="@android:color/holo_blue_light"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRed"
+                    style="?materialIconButtonOutlinedStyle"
+                    app:icon="@drawable/ic_round"
+                    android:layout_marginHorizontal="8dp"
+                    app:iconTint="@android:color/holo_red_light"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPurple"
-                style="?materialIconButtonOutlinedStyle"
-                app:icon="@drawable/ic_round"
-                android:layout_marginHorizontal="8dp"
-                app:iconTint="@android:color/holo_purple"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnBlue"
+                    style="?materialIconButtonOutlinedStyle"
+                    app:icon="@drawable/ic_round"
+                    android:layout_marginHorizontal="8dp"
+                    app:iconTint="@android:color/holo_blue_light"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
 
-        </LinearLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPurple"
+                    style="?materialIconButtonOutlinedStyle"
+                    app:icon="@drawable/ic_round"
+                    android:layout_marginHorizontal="8dp"
+                    app:iconTint="@android:color/holo_purple"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
 
         <TextView
             android:layout_marginTop="8dp"
