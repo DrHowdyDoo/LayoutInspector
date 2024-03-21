@@ -86,7 +86,6 @@
                 android:paddingHorizontal="@dimen/component_attribute_padding_horizontal">
 
                 <TextView
-                    android:id="@+id/tvPackage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="start|center_vertical"
@@ -167,7 +166,6 @@
                 android:paddingHorizontal="@dimen/component_attribute_padding_horizontal">
 
                 <LinearLayout
-                    android:id="@+id/containerTextSize"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
@@ -192,7 +190,6 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/containerTextColor"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/component_attribute_row_gap"
@@ -218,7 +215,6 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/containerTextStyle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/component_attribute_row_gap"
@@ -246,7 +242,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/containerAlpha"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/component_attribute_row_gap"
@@ -273,7 +268,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/containerElevation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/component_attribute_row_gap"
@@ -300,7 +294,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/containerVisibility"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/component_attribute_row_gap"

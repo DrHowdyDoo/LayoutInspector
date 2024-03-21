@@ -4,6 +4,5 @@
         android:title="All views" />
     <item android:id="@+id/visible"
         android:title="Visible views" />
-    <item android:id="@+id/invisible"
-        android:title="Invisible views" />
+    <item android:title="Invisible views" />
 </menu>

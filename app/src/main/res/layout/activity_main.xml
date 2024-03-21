@@ -8,7 +8,6 @@
     tools:context=".MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/parent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="36dp"
@@ -65,7 +64,6 @@
             app:layout_constraintTop_toBottomOf="@+id/tvWelcomeText">
 
             <TextView
-                android:id="@+id/tvInfoNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:breakStrategy="balanced"
@@ -81,7 +79,6 @@
 
 
         <LinearLayout
-            android:id="@+id/infoStepsContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"

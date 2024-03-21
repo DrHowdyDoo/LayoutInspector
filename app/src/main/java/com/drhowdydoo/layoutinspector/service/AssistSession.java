@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.os.Build;
 import android.os.Bundle;
 import android.service.voice.VoiceInteractionSession;
 import android.util.Log;
@@ -202,9 +201,6 @@ public class AssistSession extends VoiceInteractionSession {
         super.onHandleAssist(state);
         Log.d("TAG", "onHandleAssist: ");
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            return;
-        }
         assistStructure = state.getAssistStructure();
         mAssistantView.post(() -> {
             Utils.statusBarOffset = mAssistantView.visibleDisplayFrame.top;

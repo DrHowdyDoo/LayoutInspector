@@ -4,7 +4,6 @@ import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 
 import com.amrdeveloper.treeview.TreeNode;
