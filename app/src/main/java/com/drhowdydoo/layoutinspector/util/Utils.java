@@ -2,8 +2,11 @@ package com.drhowdydoo.layoutinspector.util;
 
 import android.app.assist.AssistStructure;
 import android.content.Context;
+import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 
 import com.amrdeveloper.treeview.TreeNode;
@@ -50,6 +53,10 @@ public class Utils {
         int left = leftOffset + viewNode.getLeft()  - viewNode.getScrollX();
         int top = topOffset + viewNode.getTop() - viewNode.getScrollY();
         Rect rect = new Rect(left, top , left + viewNode.getWidth(), top + viewNode.getHeight());
+        Matrix transformation = viewNode.getTransformation();
+        if (transformation != null) {
+            transformation.mapRect(new RectF(rect));
+        }
         viewNodeRectMap.put(viewNodeWrapper, rect);
 
         // Traverse children
