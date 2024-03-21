@@ -4,6 +4,7 @@ import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 
 import com.amrdeveloper.treeview.TreeNode;
@@ -47,9 +48,9 @@ public class Utils {
         componentTree.add(root);
 
         // Calculate absolute position
-        int left = leftOffset + viewNode.getLeft();
-        int top = topOffset + viewNode.getTop();
-        Rect rect = new Rect(left, top, left + viewNode.getWidth(), top + viewNode.getHeight());
+        int left = leftOffset + viewNode.getLeft()  - viewNode.getScrollX();
+        int top = topOffset + viewNode.getTop() - viewNode.getScrollY();
+        Rect rect = new Rect(left, top , left + viewNode.getWidth(), top + viewNode.getHeight());
         viewNodeRectMap.put(viewNodeWrapper, rect);
 
         // Traverse children
