@@ -118,6 +118,7 @@
             android:visibility="invisible"
             app:layout_constraintBottom_toBottomOf="@+id/card_bg"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toEndOf="@+id/card_bg"
             app:layout_constraintTop_toTopOf="@+id/card_bg"
             app:layout_constraintWidth_max="400dp"
