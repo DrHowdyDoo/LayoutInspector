@@ -12,19 +12,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:fitsSystemWindows="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_bg"
             style="?attr/materialCardViewFilledStyle"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="272dp"
-            android:layout_marginBottom="16dp"
             android:layout_marginHorizontal="12dp"
+            android:layout_marginBottom="16dp"
+            app:layout_constraintWidth_max="420dp"
             app:cardBackgroundColor="?colorSurface"
             app:cardCornerRadius="28dp"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -32,12 +36,13 @@
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
                 android:paddingHorizontal="4dp"
-                android:paddingVertical="8dp">
+                android:paddingBottom="8dp">
 
                 <com.google.android.material.tabs.TabLayout
                     android:id="@+id/tabLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="42dp"
+                    android:layout_marginTop="8dp"
                     android:background="@drawable/tab_indicator"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -69,6 +74,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:animateLayoutChanges="true"
+                    android:clipToPadding="false"
+                    android:paddingTop="4dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -81,6 +88,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end|top"
+                    android:layout_marginTop="6dp"
                     app:icon="@drawable/rounded_settings_24"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -90,9 +98,9 @@
                     style="?materialIconButtonFilledTonalStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="2dp"
-                    app:iconTint="?colorOnSurface"
+                    android:layout_marginTop="6dp"
                     app:icon="@drawable/rounded_keyboard_arrow_down_24"
+                    app:iconTint="?colorOnSurface"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -103,12 +111,15 @@
         <include
             android:id="@+id/settings_layout"
             layout="@layout/settings_layout"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
+            app:layout_constraintWidth_max="420dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
             android:layout_marginBottom="16dp"
             android:visibility="invisible"
             app:layout_constraintBottom_toTopOf="@+id/card_bg"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

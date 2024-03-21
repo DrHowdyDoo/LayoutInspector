@@ -265,7 +265,7 @@ public class AssistSession extends VoiceInteractionSession {
     private void collapseCardView() {
         TransitionManager.beginDelayedTransition(mCardView, changeBoundTransition);
         ViewGroup.LayoutParams layoutParams = mCardView.getLayoutParams();
-        layoutParams.height = Utils.dpToPx(getContext(), 60);
+        layoutParams.height = Utils.dpToPx(getContext(), 59);
         mCardView.setLayoutParams(layoutParams);
     }
 

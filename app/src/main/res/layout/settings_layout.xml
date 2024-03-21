@@ -13,7 +13,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginVertical="16dp"
         android:orientation="vertical">
 
         <TextView
@@ -26,7 +28,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="28dp"
             android:orientation="horizontal">
 
             <com.google.android.material.materialswitch.MaterialSwitch
@@ -41,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:text="for"
                 android:layout_gravity="center_vertical"
-                android:layout_marginStart="18dp"
+                android:layout_marginStart="8dp"
                 android:textStyle="italic"
                 android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
 
@@ -52,7 +54,7 @@
                 android:layout_height="match_parent"
                 android:gravity="center_vertical|start"
                 android:text="Visible views"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="8dp"
                 android:layout_gravity="center_vertical"
                 android:textStyle="bold"
                 android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
