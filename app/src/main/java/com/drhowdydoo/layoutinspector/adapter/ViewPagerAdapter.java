@@ -2,6 +2,9 @@ package com.drhowdydoo.layoutinspector.adapter;
 
 import android.app.assist.AssistStructure;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,11 +37,15 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     private ComponentTabViewholder componentTabViewholder;
     private final Context context;
     private final AssistSession assistSession;
+    private PackageManager pm;
 
     public ViewPagerAdapter(Context context, AssistSession assistSession) {
         this.context = context;
         this.assistSession = assistSession;
+        pm = context.getPackageManager();
     }
+
+
 
     @Override
     public int getItemViewType(int position) {
@@ -124,6 +131,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         } else {
             componentTabViewholder.tvPackage.setText(packageName);
             componentTabViewholder.tvPackage.setVisibility(View.VISIBLE);
+            setThemeAttributes(packageName, viewNode.getId());
 
         }
         componentTabViewholder.tvWidth.setText(String.format("%s dp", Utils.pxToDp(context, viewNode.getWidth())));
@@ -148,6 +156,22 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             componentTabViewholder.tvContentDesc.setText(contentDescription);
         }
 
+
+    }
+
+    private void setThemeAttributes(String packageName, int id) {
+        try {
+            Resources resources = pm.getResourcesForApplication(packageName);
+            int theme = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA).theme;
+
+            componentTabViewholder.containerTheme.setVisibility(View.VISIBLE);
+            componentTabViewholder.tvTheme.setText(resources.getResourceEntryName(theme));
+
+
+        } catch (PackageManager.NameNotFoundException | Resources.NotFoundException e) {
+            Log.e("TAG", e + " for package: " + packageName);
+            componentTabViewholder.containerTheme.setVisibility(View.GONE);
+        }
     }
 
     private void setTextAttribute(AssistStructure.ViewNode viewNode){
@@ -186,8 +210,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         ImageView imgComponentIcon;
         TextView tvPackage,tvWidth, tvHeight, tvComponentId,
                 tvComponentName,tvTextSize,tvTextColor,tvTextStyle,
-                tvAlpha, tvElevation,tvVisibility,tvContentDesc;
-        LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc;
+                tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme;
+        LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc,containerTheme;
         TextView tvSelectComponent;
         public ComponentTabViewholder(@NonNull View itemView) {
             super(itemView);
@@ -209,6 +233,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             tvVisibility = itemView.findViewById(R.id.tvVisibility);
             tvContentDesc = itemView.findViewById(R.id.tvContentDesc);
             containerContentDesc = itemView.findViewById(R.id.containerContentDesc);
+            containerTheme = itemView.findViewById(R.id.containerTheme);
+            tvTheme = itemView.findViewById(R.id.tvTheme);
         }
     }
 
