@@ -68,6 +68,8 @@ public class AssistSession extends VoiceInteractionSession {
     private boolean isExpanded = true;
     private Transition changeBoundTransition;
     private Transition autoTransition, slideAnimation;
+    public List<ViewNodeWrapper> viewNodes;
+    public int viewNodePointer = 0;
 
     public AssistSession(Context context) {
         super(context);
@@ -272,17 +274,17 @@ public class AssistSession extends VoiceInteractionSession {
     private void setUpTouchListener() {
 
         mAssistantView.setOnTouchListener(new View.OnTouchListener() {
-            Stack<ViewNodeWrapper> viewNodeStack;
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
-                    viewNodeStack = getViewNodeByCoordinates((int) event.getX(), (int) event.getY());
+                    viewNodes = getViewNodeByCoordinates((int) event.getX(), (int) event.getY());
+                    viewNodePointer = viewNodes.size() - 1;
                     oldX = (int) event.getX();
                     oldY = (int) event.getY();
                 }
-                if (viewNodeStack == null || viewNodeStack.isEmpty()) return false;
-                ViewNodeWrapper viewNodeWrapper = viewNodeStack.pop();
+                if (viewNodes == null || viewNodes.isEmpty()) return false;
+                ViewNodeWrapper viewNodeWrapper = viewNodes.get(viewNodePointer);
                 drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
                 viewPagerAdapter.setComponent(viewNodeWrapper.getViewNode());
                 return false;

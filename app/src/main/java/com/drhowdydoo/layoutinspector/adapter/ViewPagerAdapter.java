@@ -25,6 +25,7 @@ import com.drhowdydoo.layoutinspector.ui.HierarchyViewHolder;
 import com.drhowdydoo.layoutinspector.ui.TreeLayoutManager;
 import com.drhowdydoo.layoutinspector.util.Utils;
 import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
+import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,6 +106,25 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     private void bindComponentTabViewHolder(ComponentTabViewholder holder) {
         // Handle component tab view holder logic here
         componentTabViewholder = holder;
+
+        componentTabViewholder.btnMoveLeft.setOnClickListener(v -> {
+            assistSession.viewNodePointer -= 1;
+            handlePointerBounds(assistSession.viewNodePointer, assistSession.viewNodes.size() - 1);
+            assistSession.drawRect(Utils.viewNodeRectMap.get(assistSession.viewNodes.get(assistSession.viewNodePointer)));
+            setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer).getViewNode());
+        });
+
+        componentTabViewholder.btnMoveRight.setOnClickListener(v -> {
+            assistSession.viewNodePointer += 1;
+            handlePointerBounds(assistSession.viewNodePointer, assistSession.viewNodes.size() - 1);
+            assistSession.drawRect(Utils.viewNodeRectMap.get(assistSession.viewNodes.get(assistSession.viewNodePointer)));
+            setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer).getViewNode());
+        });
+    }
+
+    private void handlePointerBounds(int currentPos, int end){
+        componentTabViewholder.btnMoveLeft.setVisibility(currentPos != 0 ? View.VISIBLE : View.INVISIBLE);
+        componentTabViewholder.btnMoveRight.setVisibility(currentPos != end ? View.VISIBLE : View.INVISIBLE);
     }
 
     public void resetComponentView(){
@@ -213,6 +233,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
                 tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme;
         LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc,containerTheme;
         TextView tvSelectComponent;
+        MaterialButton btnMoveLeft, btnMoveRight;
         public ComponentTabViewholder(@NonNull View itemView) {
             super(itemView);
             tvSelectComponent = itemView.findViewById(R.id.tvSelectComponent);
@@ -235,6 +256,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             containerContentDesc = itemView.findViewById(R.id.containerContentDesc);
             containerTheme = itemView.findViewById(R.id.containerTheme);
             tvTheme = itemView.findViewById(R.id.tvTheme);
+            btnMoveLeft = itemView.findViewById(R.id.btnMoveLeft);
+            btnMoveRight = itemView.findViewById(R.id.btnMoveRight);
         }
     }
 

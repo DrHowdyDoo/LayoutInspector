@@ -96,6 +96,7 @@
                     style="?materialIconButtonFilledTonalStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:backgroundTint="?colorSurfaceContainer"
                     android:layout_marginTop="6dp"
                     app:icon="@drawable/rounded_keyboard_arrow_down_24"
                     app:iconTint="?colorOnSurface"

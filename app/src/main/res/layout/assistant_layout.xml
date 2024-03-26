@@ -96,6 +96,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
+                    android:backgroundTint="?colorSurfaceContainer"
                     app:icon="@drawable/rounded_keyboard_arrow_down_24"
                     app:iconTint="?colorOnSurface"
                     app:layout_constraintStart_toStartOf="parent"
