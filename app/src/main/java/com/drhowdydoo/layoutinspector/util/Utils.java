@@ -12,12 +12,12 @@ import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Utils {
-    public static final Map<ViewNodeWrapper, Rect> viewNodeRectMap = new HashMap<>();
+    public static final Map<ViewNodeWrapper, Rect> viewNodeRectMap = new LinkedHashMap<>();
     private static final List<TreeNode> componentTree = new ArrayList<>();
     public static int statusBarOffset = 0;
 
