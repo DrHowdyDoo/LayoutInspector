@@ -122,7 +122,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         });
     }
 
-    private void handlePointerBounds(int currentPos, int end){
+    public void handlePointerBounds(int currentPos, int end){
         componentTabViewholder.btnMoveLeft.setVisibility(currentPos != 0 ? View.VISIBLE : View.INVISIBLE);
         componentTabViewholder.btnMoveRight.setVisibility(currentPos != end ? View.VISIBLE : View.INVISIBLE);
     }
@@ -184,8 +184,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             Resources resources = pm.getResourcesForApplication(packageName);
             int theme = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA).theme;
 
-            componentTabViewholder.containerTheme.setVisibility(View.VISIBLE);
+            String themeName = resources.getResourceEntryName(theme);
+            int themeContainerVisibility = themeName.isEmpty() ? View.GONE : View.VISIBLE;
             componentTabViewholder.tvTheme.setText(resources.getResourceEntryName(theme));
+            componentTabViewholder.containerTheme.setVisibility(themeContainerVisibility);
+
 
 
         } catch (PackageManager.NameNotFoundException | Resources.NotFoundException e) {

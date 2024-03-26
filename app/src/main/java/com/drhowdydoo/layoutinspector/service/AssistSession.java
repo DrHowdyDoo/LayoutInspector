@@ -280,6 +280,7 @@ public class AssistSession extends VoiceInteractionSession {
                 if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
                     viewNodes = getViewNodeByCoordinates((int) event.getX(), (int) event.getY());
                     viewNodePointer = viewNodes.size() - 1;
+                    viewPagerAdapter.handlePointerBounds(viewNodePointer, viewNodes.size() - 1);
                     oldX = (int) event.getX();
                     oldY = (int) event.getY();
                 }

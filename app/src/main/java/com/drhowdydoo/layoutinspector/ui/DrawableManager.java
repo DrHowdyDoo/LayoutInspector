@@ -21,6 +21,7 @@ public class DrawableManager {
             case "ConstraintLayout":
                 return R.drawable.constraint_layout_icon;
             case "RecyclerView":
+            case "ListView" :
                 return R.drawable.recycler_view_icon;
             case "RadioButton":
                 return R.drawable.radio_btn_icon;
@@ -30,6 +31,7 @@ public class DrawableManager {
                 return R.drawable.viewgroup_icon;
             case "Slider":
             case "SeekBar" :
+            case "ProgressBar" :
                 return R.drawable.slider_icon;
             case "ScrollView":
                 return R.drawable.scroll_view_icon;
@@ -47,6 +49,11 @@ public class DrawableManager {
             case "CompoundButton" :
             case "Switch":
                 return R.drawable.switch_icon;
+            case "EditText" :
+            case "TextInputEditText" :
+                return R.drawable.edit_text_icon;
+            case "WebView" :
+                return R.drawable.webview_icon;
             default:
                 return R.drawable.view_icon;
         }
