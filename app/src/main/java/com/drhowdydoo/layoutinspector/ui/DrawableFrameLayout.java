@@ -8,6 +8,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
@@ -21,10 +22,11 @@ import java.util.List;
 public class DrawableFrameLayout extends FrameLayout {
 
     public final Rect visibleDisplayFrame = new Rect();
-    private Paint singleBoundPaint, multiBoundPaint;
+    private Paint singleBoundPaint, multiBoundPaint, fillPaint;
     private Rect rect = new Rect();
     private List<Rect> layoutBounds = new ArrayList<>();
     private SharedPreferences preferences;
+    private PorterDuffColorFilter colorFilter;
 
 
 
@@ -39,6 +41,8 @@ public class DrawableFrameLayout extends FrameLayout {
         int strokeColor = preferences.getInt("SETTINGS_STROKE_COLOR", Color.GREEN);
         float strokeWidth = preferences.getFloat("SETTINGS_STROKE_WIDTH", 2.5f);
 
+        colorFilter = new PorterDuffColorFilter(strokeColor, PorterDuff.Mode.SRC_IN);
+
         singleBoundPaint = new Paint();
         singleBoundPaint.setAntiAlias(true);
         singleBoundPaint.setColor(strokeColor);
@@ -51,6 +55,11 @@ public class DrawableFrameLayout extends FrameLayout {
         multiBoundPaint.setStyle(Paint.Style.STROKE);
         multiBoundPaint.setStrokeWidth(strokeWidth);
 
+        fillPaint = new Paint();
+        fillPaint.setAntiAlias(true);
+        fillPaint.setStyle(Paint.Style.FILL);
+        fillPaint.setColorFilter(colorFilter);
+        fillPaint.setAlpha(60);
 
     }
 
@@ -71,6 +80,9 @@ public class DrawableFrameLayout extends FrameLayout {
         singleBoundPaint.setStrokeWidth(strokeWidth);
         multiBoundPaint.setColor(strokeColor);
         multiBoundPaint.setStrokeWidth(strokeWidth);
+        colorFilter = new PorterDuffColorFilter(strokeColor, PorterDuff.Mode.SRC_IN);
+        fillPaint.setColorFilter(colorFilter);
+
         invalidate();
     }
 
@@ -83,9 +95,12 @@ public class DrawableFrameLayout extends FrameLayout {
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
-        if (rect != null) canvas.drawRect(rect, singleBoundPaint);
         boolean showLayoutBounds = preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false);
-        if (showLayoutBounds) drawLayoutBounds(canvas);
+        if (showLayoutBounds) {
+            drawLayoutBounds(canvas);
+            canvas.drawRect(rect, fillPaint);
+        }
+        if (rect != null) canvas.drawRect(rect, singleBoundPaint);
     }
 
     private void drawLayoutBounds(Canvas canvas) {
