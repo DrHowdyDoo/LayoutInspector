@@ -4,6 +4,7 @@
     <string name="layout_inspector">Layout \nInspector</string>
     <string name="welcome_text">Welcome to Layout Inspector, your go-to tool for effortless layout exploration! 🎉</string>
     <string name="setup_text">In order to use Layout Inspector, you\'ll need to set it as your default assistant app.\nDon\'t worry, it\'s a simple process, and i\'ll guide you through it seamlessly.</string>
+    <string name="note">You may experience occasional crashes, especially on certain devices (Realme).\nUnfortunately, the cause of these crashes is beyond my control.😅\n\nIt\'s related to the intricate workings of the Android operating system, which can vary between different manufacturers and devices.\nThis variation can sometimes lead to unexpected behavior that may result in app crashes</string>
     <string name="info_step_2">Choose Layout Inspector</string>
     <string name="info_step_3">Enable Use text from screen\n(Required to get information on screen content, layout inspector can only access it when explicitly invoked by user and only for views not declared as secure.)</string>
     <string name="info_step_4">Enable Use screenshot (Optional)</string>

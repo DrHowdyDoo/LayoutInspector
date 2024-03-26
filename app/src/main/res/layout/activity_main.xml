@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:scrollbars="none"
     tools:context=".MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -163,6 +164,28 @@
                 android:text="@string/info_step_4"
                 android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                 app:drawableStartCompat="@drawable/rounded_counter_4_24" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="36dp"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/round_warning_amber_24"
+                    app:tint="?colorError" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/note"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+                    android:drawablePadding="16dp" />
+
+            </LinearLayout>
 
 
         </LinearLayout>
