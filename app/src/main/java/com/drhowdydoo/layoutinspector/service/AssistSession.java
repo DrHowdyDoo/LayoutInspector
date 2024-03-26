@@ -15,6 +15,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.PopupMenu;
@@ -203,7 +204,8 @@ public class AssistSession extends VoiceInteractionSession {
 
         assistStructure = state.getAssistStructure();
         mAssistantView.post(() -> {
-            Utils.statusBarOffset = mAssistantView.visibleDisplayFrame.top;
+            WindowInsets insets = mAssistantView.getRootWindowInsets();
+            if (insets.getSystemWindowInsetTop() == 0) Utils.statusBarOffset = -mAssistantView.visibleDisplayFrame.top;
             if (assistStructure == null) {
                 hierarchy.clear();
             } else {

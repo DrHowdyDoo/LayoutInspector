@@ -6,7 +6,6 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 
 import com.amrdeveloper.treeview.TreeNode;
@@ -20,7 +19,7 @@ import java.util.Map;
 public class Utils {
     public static final Map<ViewNodeWrapper, Rect> viewNodeRectMap = new HashMap<>();
     private static final List<TreeNode> componentTree = new ArrayList<>();
-    public static int statusBarOffset;
+    public static int statusBarOffset = 0;
 
     public static List<TreeNode> displayViewHierarchy(AssistStructure assistStructure) {
         int windowNodeCount = assistStructure.getWindowNodeCount();
@@ -28,7 +27,7 @@ public class Utils {
         viewNodeRectMap.clear();
         for (int i = 0; i < windowNodeCount; i++) {
             AssistStructure.WindowNode windowNode = assistStructure.getWindowNodeAt(i);
-            displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0, null, 0, -statusBarOffset, true);
+            displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0, null, 0, statusBarOffset, true);
         }
         return componentTree;
     }
