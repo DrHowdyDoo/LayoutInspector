@@ -34,6 +34,7 @@
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:windowActivityTransitions">true</item>
         <item name="popupMenuBackground">@drawable/custom_popup_background</item>
+        <item name="colorBackgroundSolid">@color/black</item>
 
     </style>
 </resources>

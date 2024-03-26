@@ -6,7 +6,7 @@
   <path
       android:pathData="M24,2.5L100,2.5A21.5,21.5 0,0 1,121.5 24L121.5,222A21.5,21.5 0,0 1,100 243.5L24,243.5A21.5,21.5 0,0 1,2.5 222L2.5,24A21.5,21.5 0,0 1,24 2.5z"
       android:strokeWidth="5"
-      android:fillColor="#000000"
+      android:fillColor="?colorBackgroundSolid"
       android:strokeColor="#2C2D2F"/>
   <path
       android:pathData="M39,38L105,38A6,6 0,0 1,111 44L111,69.57A6,6 0,0 1,105 75.57L39,75.57A6,6 0,0 1,33 69.57L33,44A6,6 0,0 1,39 38z"
@@ -41,7 +41,7 @@
         android:strokeLineJoin="round"
         android:strokeWidth="4"
         android:fillColor="#00000000"
-        android:strokeColor="#ffffff"
+        android:strokeColor="?colorOnBackground"
         android:strokeLineCap="round"/>
   </group>
   <path
@@ -50,5 +50,5 @@
       android:fillAlpha="0.44"/>
   <path
       android:pathData="M45,232L79,232A1,1 0,0 1,80 233L80,233A1,1 0,0 1,79 234L45,234A1,1 0,0 1,44 233L44,233A1,1 0,0 1,45 232z"
-      android:fillColor="#ffffff"/>
+      android:fillColor="?colorOnBackground"/>
 </vector>
