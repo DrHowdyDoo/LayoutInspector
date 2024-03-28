@@ -35,7 +35,7 @@ import com.drhowdydoo.layoutinspector.R;
 import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
 import com.drhowdydoo.layoutinspector.ui.DrawableFrameLayout;
 import com.drhowdydoo.layoutinspector.util.Utils;
-import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
+import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -286,6 +286,7 @@ public class AssistSession extends VoiceInteractionSession {
                 }
                 if (viewNodes == null || viewNodes.isEmpty()) return false;
                 ViewNodeWrapper viewNodeWrapper = viewNodes.get(viewNodePointer);
+                mAssistantView.setArrowSet(viewNodeWrapper.getArrowSet());
                 drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
                 viewPagerAdapter.setComponent(viewNodeWrapper.getViewNode());
                 return false;

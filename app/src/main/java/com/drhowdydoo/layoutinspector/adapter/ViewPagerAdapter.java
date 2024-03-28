@@ -24,7 +24,7 @@ import com.drhowdydoo.layoutinspector.ui.DrawableManager;
 import com.drhowdydoo.layoutinspector.ui.HierarchyViewHolder;
 import com.drhowdydoo.layoutinspector.ui.TreeLayoutManager;
 import com.drhowdydoo.layoutinspector.util.Utils;
-import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
+import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;

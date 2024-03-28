@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
@@ -15,6 +16,8 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.drhowdydoo.layoutinspector.model.ArrowSet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +30,9 @@ public class DrawableFrameLayout extends FrameLayout {
     private List<Rect> layoutBounds = new ArrayList<>();
     private SharedPreferences preferences;
     private PorterDuffColorFilter colorFilter;
+    private Path arrowPath;
+    private Paint arrowPaint;
+    private ArrowSet arrowSet;
 
 
 
@@ -61,6 +67,13 @@ public class DrawableFrameLayout extends FrameLayout {
         fillPaint.setColorFilter(colorFilter);
         fillPaint.setAlpha(60);
 
+        arrowPath = new Path();
+
+        arrowPaint = new Paint();
+        arrowPaint.setColor(strokeColor);
+        arrowPaint.setStyle(Paint.Style.STROKE);
+        arrowPaint.setStrokeWidth(strokeWidth);
+
     }
 
     public DrawableFrameLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -82,6 +95,8 @@ public class DrawableFrameLayout extends FrameLayout {
         multiBoundPaint.setStrokeWidth(strokeWidth);
         colorFilter = new PorterDuffColorFilter(strokeColor, PorterDuff.Mode.SRC_IN);
         fillPaint.setColorFilter(colorFilter);
+        arrowPaint.setColor(strokeColor);
+        arrowPaint.setStrokeWidth(strokeWidth);
 
         invalidate();
     }
@@ -101,6 +116,14 @@ public class DrawableFrameLayout extends FrameLayout {
             canvas.drawRect(rect, fillPaint);
         }
         if (rect != null) canvas.drawRect(rect, singleBoundPaint);
+
+        if (arrowSet != null) {
+            drawArrow(canvas, arrowSet.getLeftArrow().getStartX(), arrowSet.getLeftArrow().getStartY(), arrowSet.getLeftArrow().getEndX(), arrowSet.getLeftArrow().getEndY());
+            drawArrow(canvas, arrowSet.getTopArrow().getStartX(), arrowSet.getTopArrow().getStartY(), arrowSet.getTopArrow().getEndX(), arrowSet.getTopArrow().getEndY());
+            drawArrow(canvas, arrowSet.getRightArrow().getStartX(), arrowSet.getRightArrow().getStartY(), arrowSet.getRightArrow().getEndX(), arrowSet.getRightArrow().getEndY());
+            drawArrow(canvas, arrowSet.getBottomArrow().getStartX(), arrowSet.getBottomArrow().getStartY(), arrowSet.getBottomArrow().getEndX(), arrowSet.getBottomArrow().getEndY());
+        }
+
     }
 
     private void drawLayoutBounds(Canvas canvas) {
@@ -125,6 +148,17 @@ public class DrawableFrameLayout extends FrameLayout {
 
     public void updateLayoutBounds(List<Rect> layoutBounds) {
         this.layoutBounds = layoutBounds;
+    }
+
+    private void drawArrow(Canvas canvas, float startX, float startY, float endX, float endY) {
+        arrowPath.reset();
+        arrowPath.moveTo(startX, startY);
+        arrowPath.lineTo(endX, endY);
+        canvas.drawPath(arrowPath, arrowPaint);
+    }
+
+    public void setArrowSet(ArrowSet arrowSet) {
+        this.arrowSet = arrowSet;
     }
 
 }

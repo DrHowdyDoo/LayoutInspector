@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import com.amrdeveloper.treeview.TreeNode;
 import com.amrdeveloper.treeview.TreeViewHolder;
 import com.drhowdydoo.layoutinspector.R;
-import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
+import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 
 public class HierarchyViewHolder extends TreeViewHolder {
     TextView tvNode;

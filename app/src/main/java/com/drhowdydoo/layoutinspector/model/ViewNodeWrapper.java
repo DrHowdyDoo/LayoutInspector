@@ -1,4 +1,4 @@
-package com.drhowdydoo.layoutinspector.util;
+package com.drhowdydoo.layoutinspector.model;
 
 import android.app.assist.AssistStructure;
 import android.view.View;
@@ -7,11 +7,18 @@ public class ViewNodeWrapper {
 
     private AssistStructure.ViewNode viewNode;
     private boolean visibility;
+    private ArrowSet arrowSet;
 
 
     public ViewNodeWrapper(AssistStructure.ViewNode viewNode, boolean visibility) {
         this.viewNode = viewNode;
         this.visibility = visibility;
+    }
+
+    public ViewNodeWrapper(AssistStructure.ViewNode viewNode, boolean visibility, ArrowSet arrowSet) {
+        this.viewNode = viewNode;
+        this.visibility = visibility;
+        this.arrowSet = arrowSet;
     }
 
     public AssistStructure.ViewNode getViewNode() {
@@ -32,5 +39,13 @@ public class ViewNodeWrapper {
 
     public boolean showViewNode(int visibilityFlag){
         return (visibilityFlag == View.VISIBLE) == visibility;
+    }
+
+    public ArrowSet getArrowSet() {
+        return arrowSet;
+    }
+
+    public void setArrowSet(ArrowSet arrowSet) {
+        this.arrowSet = arrowSet;
     }
 }
