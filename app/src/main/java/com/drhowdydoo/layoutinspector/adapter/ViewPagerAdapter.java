@@ -140,17 +140,18 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder.tvComponentName.setText(Utils.getLastSegmentOfClass(viewNode.getClassName()));
         String id = String.valueOf(viewNode.getIdEntry());
         if (!id.equalsIgnoreCase("null")) {
-            componentTabViewholder.tvComponentId.setText(String.format("id: %s",id));
             componentTabViewholder.tvComponentId.setVisibility(View.VISIBLE);
+            componentTabViewholder.tvComponentId.setText(String.format("id: %s",id));
         }else {
             componentTabViewholder.tvComponentId.setVisibility(View.GONE);
         }
+
         String packageName = viewNode.getIdPackage();
         if (packageName == null || packageName.isEmpty()) {
             componentTabViewholder.containerPackage.setVisibility(View.GONE);
         } else {
+            componentTabViewholder.containerPackage.setVisibility(View.VISIBLE);
             componentTabViewholder.tvPackage.setText(packageName);
-            componentTabViewholder.tvPackage.setVisibility(View.VISIBLE);
             setThemeAttributes(packageName, viewNode.getId());
 
         }
@@ -176,7 +177,6 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             componentTabViewholder.tvContentDesc.setText(contentDescription);
         }
 
-
     }
 
     private void setThemeAttributes(String packageName, int id) {
@@ -188,8 +188,6 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             int themeContainerVisibility = themeName.isEmpty() ? View.GONE : View.VISIBLE;
             componentTabViewholder.tvTheme.setText(resources.getResourceEntryName(theme));
             componentTabViewholder.containerTheme.setVisibility(themeContainerVisibility);
-
-
 
         } catch (PackageManager.NameNotFoundException | Resources.NotFoundException e) {
             Log.e("TAG", e + " for package: " + packageName);
