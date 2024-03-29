@@ -111,6 +111,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             assistSession.viewNodePointer -= 1;
             handlePointerBounds(assistSession.viewNodePointer, assistSession.viewNodes.size() - 1);
             assistSession.drawRect(Utils.viewNodeRectMap.get(assistSession.viewNodes.get(assistSession.viewNodePointer)));
+            assistSession.drawArrow();
             setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer).getViewNode());
         });
 
@@ -118,6 +119,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             assistSession.viewNodePointer += 1;
             handlePointerBounds(assistSession.viewNodePointer, assistSession.viewNodes.size() - 1);
             assistSession.drawRect(Utils.viewNodeRectMap.get(assistSession.viewNodes.get(assistSession.viewNodePointer)));
+            assistSession.drawArrow();
             setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer).getViewNode());
         });
     }

@@ -104,6 +104,12 @@ public class Utils {
         return Math.round(px / scaledDensity);
     }
 
+    public static int spToPx(Context context, int sp) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float scaledDensity = displayMetrics.scaledDensity;
+        return Math.round(sp * scaledDensity);
+    }
+
     public static int dpToPx(Context context, float dp) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         return Math.round(dp * displayMetrics.density);

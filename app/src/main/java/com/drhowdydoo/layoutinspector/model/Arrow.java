@@ -14,6 +14,13 @@ public class Arrow {
         this.endY = endY;
     }
 
+    public Arrow() {
+        startX = 0;
+        startY = 0;
+        endX = 0;
+        endY = 0;
+    }
+
     public int getStartX() {
         return startX;
     }
@@ -46,6 +53,20 @@ public class Arrow {
         this.endY = endY;
     }
 
+    public int getCenterX() {
+        return ((startX + endX) / 2);
+    }
+
+    public int getCenterY(){
+        return ((startY + endY) / 2);
+    }
+
+
+    public int length(){
+        if (startX == endX) return Math.abs(endY - startY);
+        else return Math.abs(endX - startX);
+    }
+
     @Override
     public String toString() {
         return "Arrow{" +
@@ -54,5 +75,12 @@ public class Arrow {
                 ", endX=" + endX +
                 ", endY=" + endY +
                 '}';
+    }
+
+    public void clear(){
+        startX = 0;
+        startY = 0;
+        endX = 0;
+        endY = 0;
     }
 }

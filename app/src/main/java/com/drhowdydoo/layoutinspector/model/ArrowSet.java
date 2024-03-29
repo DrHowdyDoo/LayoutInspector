@@ -15,6 +15,13 @@ public class ArrowSet {
         this.bottomArrow = bottomArrow;
     }
 
+    public ArrowSet() {
+        leftArrow = new Arrow();
+        rightArrow = new Arrow();
+        topArrow = new Arrow();
+        bottomArrow = new Arrow();
+    }
+
     public Arrow getLeftArrow() {
         return leftArrow;
     }
@@ -56,4 +63,12 @@ public class ArrowSet {
                 ", bottomArrow=" + bottomArrow.toString() +
                 '}';
     }
+
+    public void clear(){
+        leftArrow.clear();
+        rightArrow.clear();
+        topArrow.clear();
+        bottomArrow.clear();
+    }
+
 }
