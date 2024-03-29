@@ -41,6 +41,9 @@ public class DistanceArrowDrawer {
     }
 
     public static void onDraw(Canvas canvas, Context context) {
+        if (arrowSet == null) {
+            return;
+        }
             ArrowDrawer.onDraw(canvas);
             float topTextWidth = textPaint.measureText(arrowSet.getTopArrow().length() + " dp");
             float bottomTextWidth = textPaint.measureText(arrowSet.getBottomArrow().length() + " dp");
@@ -60,7 +63,7 @@ public class DistanceArrowDrawer {
                     arrowSet.getRightArrow().length());
 
             drawText(context, canvas,
-                    arrowSet.getBottomArrow().getCenterX() + (topTextWidth / 2) + Utils.dpToPx(context, 6),
+                    arrowSet.getBottomArrow().getCenterX() + (bottomTextWidth / 2) + Utils.dpToPx(context, 6),
                     arrowSet.getBottomArrow().getCenterY() + Utils.dpToPx(context, 6),
                     arrowSet.getBottomArrow().length());
     }

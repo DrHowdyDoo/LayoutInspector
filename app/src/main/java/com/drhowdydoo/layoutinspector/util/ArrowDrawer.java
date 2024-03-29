@@ -37,13 +37,46 @@ public class ArrowDrawer {
     }
 
     public static void onDraw(Canvas canvas) {
-        drawArrow(canvas, arrowSet.getLeftArrow().getStartX(), arrowSet.getLeftArrow().getStartY(), arrowSet.getLeftArrow().getEndX(), arrowSet.getLeftArrow().getEndY());
-        drawArrow(canvas, arrowSet.getTopArrow().getStartX(), arrowSet.getTopArrow().getStartY(), arrowSet.getTopArrow().getEndX(), arrowSet.getTopArrow().getEndY());
-        drawArrow(canvas, arrowSet.getRightArrow().getStartX(), arrowSet.getRightArrow().getStartY(), arrowSet.getRightArrow().getEndX(), arrowSet.getRightArrow().getEndY());
-        drawArrow(canvas, arrowSet.getBottomArrow().getStartX(), arrowSet.getBottomArrow().getStartY(), arrowSet.getBottomArrow().getEndX(), arrowSet.getBottomArrow().getEndY());
+        if (arrowSet == null) return;
+        drawArrow(canvas,
+                arrowSet.getLeftArrow().getStartX(),
+                arrowSet.getLeftArrow().getStartY(),
+                arrowSet.getLeftArrow().getEndX(),
+                arrowSet.getLeftArrow().getEndY(),
+                8, 0,
+                0, 0);
+
+        drawArrow(canvas,
+                arrowSet.getTopArrow().getStartX(),
+                arrowSet.getTopArrow().getStartY(),
+                arrowSet.getTopArrow().getEndX(),
+                arrowSet.getTopArrow().getEndY(),
+                0, 8,
+                0, 0);
+
+        drawArrow(canvas,
+                arrowSet.getRightArrow().getStartX(),
+                arrowSet.getRightArrow().getStartY(),
+                arrowSet.getRightArrow().getEndX(),
+                arrowSet.getRightArrow().getEndY(),
+                0, 0,
+                8, 0);
+
+        drawArrow(canvas,
+                arrowSet.getBottomArrow().getStartX(),
+                arrowSet.getBottomArrow().getStartY(),
+                arrowSet.getBottomArrow().getEndX(),
+                arrowSet.getBottomArrow().getEndY(),
+                0, 0,
+                0, 8);
     }
 
-    private static void drawArrow(Canvas canvas, float startX, float startY, float endX, float endY) {
+    private static void drawArrow(Canvas canvas,
+                                  float startX, float startY,
+                                  float endX, float endY,
+                                  float leftOffset, float topOffset,
+                                  float rightOffset, float bottomOffset) {
+
         if (startX == endX && startY == endY) {
             return;
         }
@@ -53,6 +86,15 @@ public class ArrowDrawer {
         canvas.drawPath(arrowPath, arrowPaint);
 
         double angle = Math.atan2(endY - startY, endX - startX);
+        drawArrowHead(canvas, endX - leftOffset + rightOffset, endY - topOffset + bottomOffset, angle);
+
+    }
+
+    private static void drawArrowHead(Canvas canvas,
+                                      float endX,
+                                      float endY,
+                                      double angle){
+
         // Length of the arrow head
         float arrowHeadLength = 16;
         // Coordinates of the arrow head
