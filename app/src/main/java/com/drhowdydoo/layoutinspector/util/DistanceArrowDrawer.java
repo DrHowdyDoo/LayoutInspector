@@ -42,13 +42,30 @@ public class DistanceArrowDrawer {
 
     public static void onDraw(Canvas canvas, Context context) {
             ArrowDrawer.onDraw(canvas);
-            drawText(context, canvas, arrowSet.getLeftArrow().getCenterX(), arrowSet.getLeftArrow().getCenterY(), arrowSet.getLeftArrow().length());
-            drawText(context, canvas, arrowSet.getTopArrow().getCenterX(), arrowSet.getTopArrow().getCenterY(), arrowSet.getTopArrow().length());
-            drawText(context, canvas, arrowSet.getRightArrow().getCenterX(), arrowSet.getRightArrow().getCenterY(), arrowSet.getRightArrow().length());
-            drawText(context, canvas, arrowSet.getBottomArrow().getCenterX(), arrowSet.getBottomArrow().getCenterY(), arrowSet.getBottomArrow().length());
+            float topTextWidth = textPaint.measureText(arrowSet.getTopArrow().length() + " dp");
+            float bottomTextWidth = textPaint.measureText(arrowSet.getBottomArrow().length() + " dp");
+            drawText(context, canvas,
+                    arrowSet.getLeftArrow().getCenterX(),
+                    arrowSet.getLeftArrow().getCenterY() - Utils.dpToPx(context, 15),
+                    arrowSet.getLeftArrow().length());
+
+            drawText(context, canvas,
+                    arrowSet.getTopArrow().getCenterX() + (topTextWidth / 2) + Utils.dpToPx(context, 6),
+                    arrowSet.getTopArrow().getCenterY() - Utils.dpToPx(context, 6),
+                    arrowSet.getTopArrow().length());
+
+            drawText(context, canvas,
+                    arrowSet.getRightArrow().getCenterX(),
+                    arrowSet.getRightArrow().getCenterY() - Utils.dpToPx(context, 15),
+                    arrowSet.getRightArrow().length());
+
+            drawText(context, canvas,
+                    arrowSet.getBottomArrow().getCenterX() + (topTextWidth / 2) + Utils.dpToPx(context, 6),
+                    arrowSet.getBottomArrow().getCenterY() + Utils.dpToPx(context, 6),
+                    arrowSet.getBottomArrow().length());
     }
 
-    private static void drawText(Context context , Canvas canvas, int x, int y, int distance) {
+    private static void drawText(Context context , Canvas canvas, float x, float y, int distance) {
         if (distance == 0) return;
 
         float textWidth = textPaint.measureText(distance + " dp");

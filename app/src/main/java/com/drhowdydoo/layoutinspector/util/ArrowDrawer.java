@@ -20,10 +20,12 @@ public class ArrowDrawer {
 
         arrowPaint = new Paint();
         arrowPaint.setColor(paintColor);
+        arrowPaint.setAntiAlias(true);
         arrowPaint.setStyle(Paint.Style.STROKE);
         arrowPaint.setStrokeWidth(strokeWidth);
 
         arrowHeadPaint = new Paint();
+        arrowHeadPaint.setAntiAlias(true);
         arrowHeadPaint.setStyle(Paint.Style.FILL);
         arrowHeadPaint.setColor(paintColor);
     }
