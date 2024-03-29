@@ -12,7 +12,7 @@ import com.drhowdydoo.layoutinspector.model.ArrowSet;
 public class DistanceArrowDrawer {
     private static Paint textPaint;
     private static Paint textBoxPaint;
-    private static Path textPath;
+    private static Path textBoxPath;
     private static ArrowSet arrowSet;
 
     public static void init(Context context, int paintColor, float strokeWidth){
@@ -20,7 +20,7 @@ public class DistanceArrowDrawer {
         ArrowDrawer.init(context, paintColor, strokeWidth);
         arrowSet = new ArrowSet();
 
-        textPath = new Path();
+        textBoxPath = new Path();
 
         textPaint = new Paint();
         textPaint.setColor(Color.WHITE);
@@ -31,7 +31,7 @@ public class DistanceArrowDrawer {
         textBoxPaint.setStyle(Paint.Style.FILL);
         textBoxPaint.setAntiAlias(true);
         textBoxPaint.setColor(paintColor);
-        textBoxPaint.setAlpha(70);
+        textBoxPaint.setAlpha(75);
     }
 
     public static void notifyPaintChange(int color, float width){
@@ -48,27 +48,54 @@ public class DistanceArrowDrawer {
             drawText(context, canvas, arrowSet.getBottomArrow().getCenterX(), arrowSet.getBottomArrow().getCenterY(), arrowSet.getBottomArrow().length());
     }
 
-
     private static void drawText(Context context , Canvas canvas, int x, int y, int distance) {
         if (distance == 0) return;
 
-        int width = Utils.dpToPx(context, 48);
-        int height = Utils.dpToPx(context, 24);
-        float radius = height / 2f;
-        textPath.reset();
-        textPath.moveTo(x + radius, y);
-        textPath.lineTo(x + width - radius, y);
-        textPath.arcTo(new RectF(x + width - 2 * radius, y, x + width, y + 2 * radius), -90, 180);
-        textPath.lineTo(x + radius, y + height);
-        textPath.arcTo(new RectF(x, y, x + 2 * radius, y + 2 * radius), 90, 180);
-        textPath.close();
-
         float textWidth = textPaint.measureText(distance + " dp");
-        float startX = x + (width - textWidth) / 2;
-        float startY = y + height / 2 + textPaint.getTextSize() / 2;
-        canvas.drawPath(textPath, textBoxPaint);
+
+        float width = textWidth + Utils.dpToPx(context, 3);
+        int height = Utils.dpToPx(context, 22);
+
+        float radius = height / 2f;
+        float left = x - (width / 2f);
+        float top = y - (height / 2f);
+        float right = x + (width / 2f);
+        float bottom = y + (height / 2f);
+        float leftOffset = 0;
+        float rightOffset = 0;
+        float topOffset = 0;
+        float bottomOffset = 0;
+
+        if (left < 0) {
+            leftOffset = right - Math.abs(left);
+            right += leftOffset;
+            left = 0;
+        }
+        if (right > canvas.getWidth()) {
+            rightOffset = right - canvas.getWidth();
+            left -= rightOffset;
+            right = canvas.getWidth();
+        }
+        if (top < 0) {
+            topOffset = bottom - Math.abs(top);
+            bottom += topOffset;
+            top = 0;
+        }
+        if (bottom > canvas.getHeight()) {
+            bottomOffset = bottom - canvas.getHeight();
+            top -= bottomOffset;
+            bottom = canvas.getHeight();
+        }
+
+        RectF rectF = new RectF(left, top, right, bottom);
+        canvas.drawRoundRect(rectF, radius, radius, textBoxPaint);
+
+        float startX = x + leftOffset - rightOffset;
+        float startY = ((bottom + top)/2) + (textPaint.getTextSize() / 3) + topOffset - bottomOffset;
+
         canvas.drawText(String.format("%s dp", Utils.pxToDp(context, distance)), startX, startY, textPaint);
     }
+
 
     public static void clearCanvas(){
         ArrowDrawer.clearCanvas();
