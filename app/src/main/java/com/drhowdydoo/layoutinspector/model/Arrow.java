@@ -1,13 +1,15 @@
 package com.drhowdydoo.layoutinspector.model;
 
+import androidx.annotation.NonNull;
+
 public class Arrow {
 
-    private int startX;
-    private int startY;
-    private int endX;
-    private int endY;
+    private float startX;
+    private float startY;
+    private float endX;
+    private float endY;
 
-    public Arrow(int startX, int startY, int endX, int endY) {
+    public Arrow(float startX, float startY, float endX, float endY) {
         this.startX = startX;
         this.startY = startY;
         this.endX = endX;
@@ -21,52 +23,53 @@ public class Arrow {
         endY = 0;
     }
 
-    public int getStartX() {
+    public float getStartX() {
         return startX;
     }
 
-    public void setStartX(int startX) {
+    public void setStartX(float startX) {
         this.startX = startX;
     }
 
-    public int getStartY() {
+    public float getStartY() {
         return startY;
     }
 
-    public void setStartY(int startY) {
+    public void setStartY(float startY) {
         this.startY = startY;
     }
 
-    public int getEndX() {
+    public float getEndX() {
         return endX;
     }
 
-    public void setEndX(int endX) {
+    public void setEndX(float endX) {
         this.endX = endX;
     }
 
-    public int getEndY() {
+    public float getEndY() {
         return endY;
     }
 
-    public void setEndY(int endY) {
+    public void setEndY(float endY) {
         this.endY = endY;
     }
 
-    public int getCenterX() {
+    public float getCenterX() {
         return ((startX + endX) / 2);
     }
 
-    public int getCenterY(){
+    public float getCenterY(){
         return ((startY + endY) / 2);
     }
 
 
-    public int length(){
+    public float length(){
         if (startX == endX) return Math.abs(endY - startY);
         else return Math.abs(endX - startX);
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "Arrow{" +

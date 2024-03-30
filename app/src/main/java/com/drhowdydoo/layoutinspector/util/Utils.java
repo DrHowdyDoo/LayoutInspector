@@ -93,7 +93,7 @@ public class Utils {
         return segments[segments.length - 1];
     }
 
-    public static int pxToDp(Context context, int px) {
+    public static int pxToDp(Context context, float px) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         return Math.round(px / displayMetrics.density);
     }
