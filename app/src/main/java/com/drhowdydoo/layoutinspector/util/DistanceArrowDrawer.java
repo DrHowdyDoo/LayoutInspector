@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.RectF;
 
 import com.drhowdydoo.layoutinspector.model.ArrowSet;
@@ -12,15 +11,12 @@ import com.drhowdydoo.layoutinspector.model.ArrowSet;
 public class DistanceArrowDrawer {
     private static Paint textPaint;
     private static Paint textBoxPaint;
-    private static Path textBoxPath;
     private static ArrowSet arrowSet;
 
     public static void init(Context context, int paintColor, float strokeWidth){
 
         ArrowDrawer.init(context, paintColor, strokeWidth);
         arrowSet = new ArrowSet();
-
-        textBoxPath = new Path();
 
         textPaint = new Paint();
         textPaint.setColor(Color.WHITE);
@@ -115,6 +111,7 @@ public class DistanceArrowDrawer {
 
         canvas.drawText(String.format("%s dp", Utils.pxToDp(context, distance)), startX, startY, textPaint);
     }
+
 
 
     public static void clearCanvas(){
