@@ -152,6 +152,13 @@
             android:valueTo="6.5"
             android:stepSize="0.5"/>
 
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchShowViewPosition"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="Show view position inside its parent"/>
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

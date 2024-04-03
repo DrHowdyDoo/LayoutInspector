@@ -10,6 +10,9 @@ import android.view.View;
 
 import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
+import com.drhowdydoo.layoutinspector.model.Arrow;
+import com.drhowdydoo.layoutinspector.model.ArrowSet;
+import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -51,11 +54,25 @@ public class Utils {
         // Calculate absolute position
         int left = leftOffset + viewNode.getLeft()  - viewNode.getScrollX();
         int top = topOffset + viewNode.getTop() - viewNode.getScrollY();
-        Rect rect = new Rect(left, top , left + viewNode.getWidth(), top + viewNode.getHeight());
+        int right = left + viewNode.getWidth();
+        int bottom = top + viewNode.getHeight();
+        Rect rect = new Rect(left, top , right, bottom);
         Matrix transformation = viewNode.getTransformation();
         if (transformation != null) {
             transformation.mapRect(new RectF(rect));
         }
+
+        if (parent != null) {
+            ViewNodeWrapper parentViewNodeWrapper = (ViewNodeWrapper) parent.getValue();
+            AssistStructure.ViewNode parentViewNode = parentViewNodeWrapper.getViewNode();
+            ArrowSet arrowSet = new ArrowSet(new Arrow(left, (top + bottom) / 2,  leftOffset - parentViewNode.getScrollX(), (top + bottom) / 2),
+                    new Arrow(left + viewNode.getWidth(), (top + bottom) / 2, parentViewNode.getWidth() + leftOffset - parentViewNode.getScrollX(), (top + bottom) / 2),
+                    new Arrow((left + right) / 2, top, (left + right) / 2, topOffset - parentViewNode.getScrollY()),
+                    new Arrow((left + right) / 2, top + viewNode.getHeight(), (left + right) / 2, parentViewNode.getHeight() + topOffset - parentViewNode.getScrollY()));
+
+            viewNodeWrapper.setArrowSet(arrowSet);
+        }
+
         viewNodeRectMap.put(viewNodeWrapper, rect);
 
         // Traverse children
@@ -67,6 +84,7 @@ public class Utils {
     }
 
 
+
     public static String getLastSegmentOfClass(String className) {
         if (className == null || className.isEmpty()) {
             return "";
@@ -75,7 +93,7 @@ public class Utils {
         return segments[segments.length - 1];
     }
 
-    public static int pxToDp(Context context, int px) {
+    public static int pxToDp(Context context, float px) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         return Math.round(px / displayMetrics.density);
     }
@@ -84,6 +102,12 @@ public class Utils {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         float scaledDensity = displayMetrics.scaledDensity;
         return Math.round(px / scaledDensity);
+    }
+
+    public static int spToPx(Context context, int sp) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float scaledDensity = displayMetrics.scaledDensity;
+        return Math.round(sp * scaledDensity);
     }
 
     public static int dpToPx(Context context, float dp) {

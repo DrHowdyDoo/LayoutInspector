@@ -33,9 +33,12 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
 import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
+import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 import com.drhowdydoo.layoutinspector.ui.DrawableFrameLayout;
+import com.drhowdydoo.layoutinspector.util.DistanceArrowDrawer;
+import com.drhowdydoo.layoutinspector.util.DrawableLayoutHelper;
+import com.drhowdydoo.layoutinspector.util.LayoutBoundsDrawer;
 import com.drhowdydoo.layoutinspector.util.Utils;
-import com.drhowdydoo.layoutinspector.util.ViewNodeWrapper;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
@@ -46,7 +49,6 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class AssistSession extends VoiceInteractionSession {
@@ -94,7 +96,7 @@ public class AssistSession extends VoiceInteractionSession {
     @Override
     public void onHide() {
         Log.d(TAG, "onHide() ");
-        mAssistantView.clearCanvas();
+        DrawableLayoutHelper.clearCanvas();
         viewPagerAdapter.resetComponentView();
         mAssistantView.setVisibility(View.INVISIBLE);
         mCardView.startAnimation(slideDownAnimation);
@@ -132,6 +134,7 @@ public class AssistSession extends VoiceInteractionSession {
     private void setUpSettings() {
         Slider widthSlider = settingsCard.findViewById(R.id.widthSlider);
         MaterialSwitch switchLayoutBounds = settingsCard.findViewById(R.id.switchShowLayoutBounds);
+        MaterialSwitch switchShowViewPosition = settingsCard.findViewById(R.id.switchShowViewPosition);
         MaterialButton btnGreen = settingsCard.findViewById(R.id.btnGreen);
         MaterialButton btnRed = settingsCard.findViewById(R.id.btnRed);
         MaterialButton btnBlue = settingsCard.findViewById(R.id.btnBlue);
@@ -142,38 +145,44 @@ public class AssistSession extends VoiceInteractionSession {
 
         widthSlider.setValue(preferences.getFloat("SETTINGS_STROKE_WIDTH",2.5f));
         switchLayoutBounds.setChecked(preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS",false));
+        switchShowViewPosition.setChecked(preferences.getBoolean("SETTINGS_SHOW_VIEW_POSITION", false));
         int viewType = preferences.getInt("SETTINGS_VIEW_TYPE",View.VISIBLE);
         tvViewTypeToShowBoundsFor.setText(viewType < 0 ? "All" : viewType == View.VISIBLE ? "Visible views" : "Invisible views");
 
         btnGreen.setOnClickListener(v -> {
             editor.putInt("SETTINGS_STROKE_COLOR",Color.GREEN).apply();
-            mAssistantView.updatePaintAttributes();
+            mAssistantView.notifyPaintChange();
         });
 
         btnRed.setOnClickListener(v -> {
             editor.putInt("SETTINGS_STROKE_COLOR",Color.RED).apply();
-            mAssistantView.updatePaintAttributes();
+            mAssistantView.notifyPaintChange();
         });
 
         btnBlue.setOnClickListener(v -> {
             editor.putInt("SETTINGS_STROKE_COLOR",Color.BLUE).apply();
-            mAssistantView.updatePaintAttributes();
+            mAssistantView.notifyPaintChange();
         });
 
         btnPurple.setOnClickListener(v -> {
             editor.putInt("SETTINGS_STROKE_COLOR",Color.MAGENTA).apply();
-            mAssistantView.updatePaintAttributes();
+            mAssistantView.notifyPaintChange();
         });
 
         widthSlider.addOnChangeListener((rangeSlider, value, fromUser) -> {
             editor.putFloat("SETTINGS_STROKE_WIDTH",value).apply();
-            mAssistantView.updatePaintAttributes();
+            mAssistantView.notifyPaintChange();
         });
 
         switchLayoutBounds.setOnCheckedChangeListener((buttonView, isChecked) -> {
             editor.putBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", isChecked).apply();
             if (isChecked) showLayoutBounds();
-            mAssistantView.invalidate();
+            mAssistantView.notifyPreferenceChange();
+        });
+
+        switchShowViewPosition.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            editor.putBoolean("SETTINGS_SHOW_VIEW_POSITION", isChecked).apply();
+            mAssistantView.notifyPreferenceChange();
         });
     }
 
@@ -187,7 +196,6 @@ public class AssistSession extends VoiceInteractionSession {
             editor.putInt("SETTINGS_VIEW_TYPE",viewType).apply();
             ((TextView) v).setText(menuItem.getTitle());
             showLayoutBounds();
-            mAssistantView.invalidate();
             return true; // Return true if the click event is handled.
         });
 
@@ -286,6 +294,7 @@ public class AssistSession extends VoiceInteractionSession {
                 }
                 if (viewNodes == null || viewNodes.isEmpty()) return false;
                 ViewNodeWrapper viewNodeWrapper = viewNodes.get(viewNodePointer);
+                DistanceArrowDrawer.setArrowSet(viewNodeWrapper.getArrowSet());
                 drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
                 viewPagerAdapter.setComponent(viewNodeWrapper.getViewNode());
                 return false;
@@ -293,8 +302,8 @@ public class AssistSession extends VoiceInteractionSession {
         });
     }
 
-    public static Stack<ViewNodeWrapper> getViewNodeByCoordinates(int x, int y) {
-        Stack<ViewNodeWrapper> viewNodeStack = new Stack<>();
+    public static List<ViewNodeWrapper> getViewNodeByCoordinates(int x, int y) {
+        List<ViewNodeWrapper> viewNodeStack = new ArrayList<>();
         for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
             Rect rect = entry.getValue();
             if (rect.contains(x, y)) {
@@ -302,7 +311,7 @@ public class AssistSession extends VoiceInteractionSession {
                     continue;
                 }
                 //Log.d(TAG, "getViewNodeByCoordinates: " + entry.getKey().getViewNode().getClassName());
-                viewNodeStack.push(entry.getKey());
+                viewNodeStack.add(entry.getKey());
                 if (entry.getKey().getViewNode().getChildCount() == 0) break;
             }
         }
@@ -318,11 +327,16 @@ public class AssistSession extends VoiceInteractionSession {
                     layoutBounds.add(rect);
                 }
             }
-            mAssistantView.updateLayoutBounds(layoutBounds);
+            LayoutBoundsDrawer.updateLayoutBounds(layoutBounds);
+            mAssistantView.notifyPreferenceChange();
     }
 
     public void drawRect(Rect rect) {
        mAssistantView.drawRect(rect);
+    }
+
+    public void drawArrow() {
+        DistanceArrowDrawer.setArrowSet(viewNodes.get(viewNodePointer).getArrowSet());
     }
 
 }
