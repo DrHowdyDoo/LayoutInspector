@@ -339,4 +339,5 @@ public class AssistSession extends VoiceInteractionSession {
         DistanceArrowDrawer.setArrowSet(viewNodes.get(viewNodePointer).getArrowSet());
     }
 
+
 }

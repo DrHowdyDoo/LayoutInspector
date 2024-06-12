@@ -86,4 +86,5 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         ACTIVITY_RESUMED = true;
     }
+
 }

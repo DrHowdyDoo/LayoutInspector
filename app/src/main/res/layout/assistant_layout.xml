@@ -110,14 +110,18 @@
             android:id="@+id/settings_layout"
             layout="@layout/settings_layout"
             android:layout_width="0dp"
-            app:layout_constraintWidth_max="420dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="12dp"
             android:layout_marginBottom="16dp"
             android:visibility="invisible"
+            android:layout_marginTop="8dp"
+            app:layout_constraintVertical_bias="1"
+            app:layout_constrainedHeight="true"
             app:layout_constraintBottom_toTopOf="@+id/card_bg"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintWidth_max="420dp"
             tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
