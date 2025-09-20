@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setColoredBoldText(TextView tv, int start, int end){
         SpannableStringBuilder str = new SpannableStringBuilder(tv.getText());
-        int colorPrimary = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary, Color.BLUE);
+        int colorPrimary = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimaryVariant, Color.BLUE);
         str.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         str.setSpan(new ForegroundColorSpan(colorPrimary), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         tv.setText(str);

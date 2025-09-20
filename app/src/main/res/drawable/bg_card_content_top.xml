@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle"
+    android:tint="?colorSurface">
+    <corners android:bottomLeftRadius="@dimen/bg_card_content_radius"
+        android:bottomRightRadius="@dimen/bg_card_content_radius"
+        android:topLeftRadius="@dimen/bg_card_content_radius_ends"
+        android:topRightRadius="@dimen/bg_card_content_radius_ends" />
+</shape>

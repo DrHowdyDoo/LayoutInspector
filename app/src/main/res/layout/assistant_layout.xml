@@ -23,7 +23,7 @@
             android:layout_marginHorizontal="12dp"
             android:layout_marginBottom="16dp"
             app:layout_constraintWidth_max="420dp"
-            app:cardBackgroundColor="?colorSurface"
+            app:cardBackgroundColor="?colorSurfaceContainerLowest"
             app:cardCornerRadius="28dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

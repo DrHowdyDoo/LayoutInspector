@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="component_attribute_row_gap">8dp</dimen>
-    <dimen name="component_attribute_padding_horizontal">14dp</dimen>
+    <dimen name="component_attribute_row_gap">2dp</dimen>
+    <dimen name="component_attribute_padding_horizontal">16dp</dimen>
+    <dimen name="bg_card_content_radius">6dp</dimen>
+    <dimen name="bg_card_content_radius_ends">24dp</dimen>
+    <dimen name="component_attribute_padding_vertical">8dp</dimen>
 </resources>
