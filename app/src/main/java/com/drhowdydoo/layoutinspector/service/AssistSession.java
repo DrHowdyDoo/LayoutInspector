@@ -283,12 +283,8 @@ public class AssistSession extends VoiceInteractionSession {
         ViewGroup.LayoutParams layoutParams = mCardView.getLayoutParams();
 
         float cardTop = mCardView.getY();
-        float cardBottom = cardTop + mCardView.getHeight();
-        float parentHeight = draggableContainer.getHeight();
 
-        float spaceAbove = cardTop;
-
-         if (spaceAbove <= expandedHeight) {
+        if (cardTop <= expandedHeight) {
             // not enough space above → expand downwards
             mCardView.setY(expandedHeight);
         }

@@ -100,6 +100,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         treeViewAdapter.setTreeNodeClickListener((treeNode, view) -> {
             ViewNodeWrapper viewNodeWrapper = (ViewNodeWrapper) treeNode.getValue();
             assistSession.drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
+            setComponent(viewNodeWrapper.getViewNode());
         });
     }
 
