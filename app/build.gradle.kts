@@ -9,9 +9,9 @@ android {
     defaultConfig {
         applicationId = "com.drhowdydoo.layoutinspector"
         minSdk = 29
-        targetSdk = 35
-        versionCode = 8
-        versionName = "1.0.3"
+        targetSdk = 36
+        versionCode = 9
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

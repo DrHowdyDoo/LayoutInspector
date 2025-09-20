@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.transition.AutoTransition;
 import androidx.transition.ChangeBounds;
 import androidx.transition.Slide;
@@ -75,6 +76,7 @@ public class AssistSession extends VoiceInteractionSession {
     private Transition autoTransition, slideAnimation;
     public List<ViewNodeWrapper> viewNodes;
     public int viewNodePointer = 0;
+    private CoordinatorLayout draggableContainer;
 
     public AssistSession(Context context) {
         super(context);
@@ -123,6 +125,7 @@ public class AssistSession extends VoiceInteractionSession {
         tabLayout = mAssistantView.findViewById(R.id.tabLayout);
         settingsCard = mAssistantView.findViewById(R.id.settings_layout);
         btnExpandCollapse = mAssistantView.findViewById(R.id.btnExpandCollapse);
+        draggableContainer = mAssistantView.findViewById(R.id.draggable_container);
 
         setUpAnimations();
         setUpViewPagerWithTab();
@@ -276,9 +279,21 @@ public class AssistSession extends VoiceInteractionSession {
     }
 
     private void expandCardView() {
-        TransitionManager.beginDelayedTransition(mCardView, changeBoundTransition);
+        int expandedHeight = Utils.dpToPx(getContext(), 312);
         ViewGroup.LayoutParams layoutParams = mCardView.getLayoutParams();
-        layoutParams.height = Utils.dpToPx(getContext(), 272);
+
+        float cardTop = mCardView.getY();
+        float cardBottom = cardTop + mCardView.getHeight();
+        float parentHeight = draggableContainer.getHeight();
+
+        float spaceAbove = cardTop;
+
+         if (spaceAbove <= expandedHeight) {
+            // not enough space above → expand downwards
+            mCardView.setY(expandedHeight);
+        }
+        layoutParams.height = expandedHeight;
+        TransitionManager.beginDelayedTransition(mCardView, changeBoundTransition);
         mCardView.setLayoutParams(layoutParams);
     }
 
@@ -310,6 +325,35 @@ public class AssistSession extends VoiceInteractionSession {
                 drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
                 viewPagerAdapter.setComponent(viewNodeWrapper.getViewNode());
                 return false;
+            }
+        });
+
+        mCardView.setOnTouchListener(new View.OnTouchListener() {
+            float dX, dY;
+
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        dX = view.getX() - event.getRawX();
+                        dY = view.getY() - event.getRawY();
+                        return true;
+
+                    case MotionEvent.ACTION_MOVE:
+                        float newX = event.getRawX() + dX;
+                        float newY = event.getRawY() + dY;
+
+                        // Clamp X and Y to screen bounds
+                        newX = Math.max(0, Math.min(newX, draggableContainer.getWidth() - view.getWidth()));
+                        newY = Math.max(0, Math.min(newY, draggableContainer.getHeight() - view.getHeight()));
+
+                        view.setX(newX);
+                        view.setY(newY);
+                        return true;
+
+                    default:
+                        return false;
+                }
             }
         });
     }
