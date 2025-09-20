@@ -11,6 +11,7 @@ import android.graphics.Rect;
 import android.os.Bundle;
 import android.service.voice.VoiceInteractionSession;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.view.ViewGroup;
 import android.view.WindowInsets;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.FrameLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
@@ -56,7 +58,8 @@ public class AssistSession extends VoiceInteractionSession {
     private static final String TAG = "AssistSession";
     private AssistStructure assistStructure;
     private Animation slideUpAnimation, slideDownAnimation;
-    private MaterialCardView mCardView,settingsCard;
+    private MaterialCardView mCardView;
+    private FrameLayout settingsCard;
     private DrawableFrameLayout mAssistantView;
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
@@ -140,6 +143,7 @@ public class AssistSession extends VoiceInteractionSession {
         MaterialButton btnBlue = settingsCard.findViewById(R.id.btnBlue);
         MaterialButton btnPurple = settingsCard.findViewById(R.id.btnPurple);
         TextView tvViewTypeToShowBoundsFor = settingsCard.findViewById(R.id.tvViewTypeToShow);
+        View settingsOverlay = settingsCard.findViewById(R.id.settings_overlay);
 
         tvViewTypeToShowBoundsFor.setOnClickListener(v -> showMenu(v, R.menu.popup_menu));
 
@@ -183,6 +187,12 @@ public class AssistSession extends VoiceInteractionSession {
         switchShowViewPosition.setOnCheckedChangeListener((buttonView, isChecked) -> {
             editor.putBoolean("SETTINGS_SHOW_VIEW_POSITION", isChecked).apply();
             mAssistantView.notifyPreferenceChange();
+        });
+
+        settingsOverlay.setOnClickListener(v -> {
+            TransitionManager.beginDelayedTransition((ViewGroup) settingsCard.getParent(), new Slide(Gravity.BOTTOM));
+            settingsCard.setVisibility(View.GONE);
+            isSettingsShown = false;
         });
     }
 
@@ -245,10 +255,12 @@ public class AssistSession extends VoiceInteractionSession {
 
     private void setUpClickListeners() {
         btnSettings.setOnClickListener(v -> {
-            TransitionManager.beginDelayedTransition(settingsCard, autoTransition);
+            TransitionManager.beginDelayedTransition((ViewGroup) settingsCard.getParent(), new Slide(Gravity.BOTTOM));
             settingsCard.setVisibility(isSettingsShown ? View.GONE : View.VISIBLE);
             isSettingsShown = !isSettingsShown;
         });
+
+
 
         btnExpandCollapse.setOnClickListener(v -> {
             TransitionManager.beginDelayedTransition(settingsCard, autoTransition);

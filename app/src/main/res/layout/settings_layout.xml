@@ -1,180 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="?attr/materialCardViewFilledStyle"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    app:cardBackgroundColor="?colorSurface"
-    tools:ignore="HardCodedText"
-    app:cardCornerRadius="28dp">
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <LinearLayout
+    <View
+        android:id="@+id/settings_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <com.google.android.material.card.MaterialCardView
+        style="?attr/materialCardViewFilledStyle"
+        android:layout_gravity="bottom|center_horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        app:cardBackgroundColor="?colorSurface"
+        android:padding="8dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Corner.Medium"
+        tools:ignore="HardCodedText">
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Settings"
-            android:gravity="center"
-            android:layout_marginTop="16dp"
-            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
+            android:orientation="vertical">
 
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scrollbars="none">
-
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="14dp"
-                android:layout_marginEnd="10dp"
-                android:paddingVertical="16dp"
-                android:clipToPadding="false"
-                android:orientation="vertical">
+                android:text="Settings"
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
 
-                <HorizontalScrollView
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none">
+
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="10dp"
+                    android:paddingVertical="16dp"
+                    android:clipToPadding="false"
+                    android:orientation="vertical">
 
-                    <LinearLayout
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.materialswitch.MaterialSwitch
+                                android:id="@+id/switchShowLayoutBounds"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="start"
+                                android:text="Show all layout bounds"/>
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="for"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginStart="8dp"
+                                android:textStyle="italic"
+                                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
+
+                            <TextView
+                                android:layout_weight="1"
+                                android:id="@+id/tvViewTypeToShow"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:gravity="center_vertical|start"
+                                android:text="Visible views"
+                                android:layout_marginStart="8dp"
+                                android:layout_gravity="center_vertical"
+                                android:textStyle="bold"
+                                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
+
+                        </LinearLayout>
+
+                    </HorizontalScrollView>
+
+
+
+
+                    <TextView
+                        android:layout_marginTop="8dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+                        android:text="Layout bounds color"/>
+
+                    <HorizontalScrollView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:scrollbars="none">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:gravity="start"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnGreen"
+                                style="?materialIconButtonOutlinedStyle"
+                                app:icon="@drawable/ic_round"
+                                android:layout_marginHorizontal="8dp"
+                                app:iconTint="@android:color/holo_green_light"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnRed"
+                                style="?materialIconButtonOutlinedStyle"
+                                app:icon="@drawable/ic_round"
+                                android:layout_marginHorizontal="8dp"
+                                app:iconTint="@android:color/holo_red_light"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnBlue"
+                                style="?materialIconButtonOutlinedStyle"
+                                app:icon="@drawable/ic_round"
+                                android:layout_marginHorizontal="8dp"
+                                app:iconTint="@android:color/holo_blue_light"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnPurple"
+                                style="?materialIconButtonOutlinedStyle"
+                                app:icon="@drawable/ic_round"
+                                android:layout_marginHorizontal="8dp"
+                                app:iconTint="@android:color/holo_purple"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                />
+
+                        </LinearLayout>
+
+                    </HorizontalScrollView>
+
+
+                    <TextView
+                        android:layout_marginTop="8dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+                        android:text="Layout bounds width"/>
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/widthSlider"
+                        style="@style/Widget.Material3.Slider"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:thumbHeight="32dp"
+                        android:value="2.5"
+                        android:valueFrom="1.0"
+                        android:valueTo="6.5"
+                        android:stepSize="0.5"/>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switchShowViewPosition"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:layout_gravity="start"
+                        android:text="Show view position inside its parent"/>
 
-                        <com.google.android.material.materialswitch.MaterialSwitch
-                            android:id="@+id/switchShowLayoutBounds"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="start"
-                            android:text="Show all layout bounds"/>
+                </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="for"
-                            android:layout_gravity="center_vertical"
-                            android:layout_marginStart="8dp"
-                            android:textStyle="italic"
-                            android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
+            </ScrollView>
 
-                        <TextView
-                            android:layout_weight="1"
-                            android:id="@+id/tvViewTypeToShow"
-                            android:layout_width="0dp"
-                            android:layout_height="match_parent"
-                            android:gravity="center_vertical|start"
-                            android:text="Visible views"
-                            android:layout_marginStart="8dp"
-                            android:layout_gravity="center_vertical"
-                            android:textStyle="bold"
-                            android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
-
-                    </LinearLayout>
-
-                </HorizontalScrollView>
+        </LinearLayout>
 
 
 
+    </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                    android:layout_marginTop="8dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
-                    android:text="Layout bounds color"/>
-
-                <HorizontalScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:gravity="start"
-                        android:orientation="horizontal">
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnGreen"
-                            style="?materialIconButtonOutlinedStyle"
-                            app:icon="@drawable/ic_round"
-                            android:layout_marginHorizontal="8dp"
-                            app:iconTint="@android:color/holo_green_light"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnRed"
-                            style="?materialIconButtonOutlinedStyle"
-                            app:icon="@drawable/ic_round"
-                            android:layout_marginHorizontal="8dp"
-                            app:iconTint="@android:color/holo_red_light"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnBlue"
-                            style="?materialIconButtonOutlinedStyle"
-                            app:icon="@drawable/ic_round"
-                            android:layout_marginHorizontal="8dp"
-                            app:iconTint="@android:color/holo_blue_light"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnPurple"
-                            style="?materialIconButtonOutlinedStyle"
-                            app:icon="@drawable/ic_round"
-                            android:layout_marginHorizontal="8dp"
-                            app:iconTint="@android:color/holo_purple"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            />
-
-                    </LinearLayout>
-
-                </HorizontalScrollView>
-
-
-                <TextView
-                    android:layout_marginTop="8dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
-                    android:text="Layout bounds width"/>
-
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/widthSlider"
-                    style="@style/Widget.Material3.Slider"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:thumbHeight="32dp"
-                    android:value="2.5"
-                    android:valueFrom="1.0"
-                    android:valueTo="6.5"
-                    android:stepSize="0.5"/>
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switchShowViewPosition"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start"
-                    android:text="Show view position inside its parent"/>
-
-            </LinearLayout>
-
-        </ScrollView>
-
-    </LinearLayout>
-
-
-
-</com.google.android.material.card.MaterialCardView>
+</FrameLayout>
