@@ -9,6 +9,7 @@ public class ViewNodeWrapper {
     private boolean visibility;
     private ArrowSet arrowSet;
     private int depth;
+    private int positionInHierarchy;
 
 
     public ViewNodeWrapper(AssistStructure.ViewNode viewNode, boolean visibility) {
@@ -56,5 +57,13 @@ public class ViewNodeWrapper {
 
     public void setDepth(int depth) {
         this.depth = depth;
+    }
+
+    public int getPositionInHierarchy() {
+        return positionInHierarchy;
+    }
+
+    public void setPositionInHierarchy(int positionInHierarchy) {
+        this.positionInHierarchy = positionInHierarchy;
     }
 }

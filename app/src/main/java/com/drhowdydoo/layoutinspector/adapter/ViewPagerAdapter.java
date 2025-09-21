@@ -112,25 +112,39 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder = holder;
 
         componentTabViewholder.btnMoveLeft.setOnClickListener(v -> {
-            assistSession.viewNodePointer -= 1;
-            handlePointerBounds(assistSession.viewNodePointer, assistSession.viewNodes.size() - 1);
-            assistSession.drawRect(Utils.viewNodeRectMap.get(assistSession.viewNodes.get(assistSession.viewNodePointer)));
+            if (AssistSession.selectedViewNode == null) return;
+            AssistSession.viewNodeWrapperStack.push(AssistSession.selectedViewNode);
+            TreeNode parentNode = hierarchy.get(AssistSession.selectedViewNode.getPositionInHierarchy()).getParent();
+            ViewNodeWrapper parentNodeWrapper = parentNode != null ? (ViewNodeWrapper) parentNode.getValue() : null;
+            assistSession.drawRect(Utils.viewNodeRectMap.get(parentNodeWrapper));
             assistSession.drawArrow();
-            setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer));
+            setComponent(parentNodeWrapper);
+            int childCount = parentNodeWrapper != null ? parentNodeWrapper.getViewNode().getChildCount() : 0;
+            handlePointerBounds(AssistSession.selectedViewNode.getPositionInHierarchy(), childCount);
         });
 
         componentTabViewholder.btnMoveRight.setOnClickListener(v -> {
-            assistSession.viewNodePointer += 1;
-            handlePointerBounds(assistSession.viewNodePointer, assistSession.viewNodes.size() - 1);
-            assistSession.drawRect(Utils.viewNodeRectMap.get(assistSession.viewNodes.get(assistSession.viewNodePointer)));
+            if (AssistSession.selectedViewNode == null) return;
+            int position = AssistSession.selectedViewNode.getPositionInHierarchy();
+            TreeNode childNode = hierarchy.get(position).getChildren() != null ? hierarchy.get(position).getChildren().get(0) : null;
+            ViewNodeWrapper childNodeWrapper = null;
+            if (!AssistSession.viewNodeWrapperStack.isEmpty()) {
+                childNodeWrapper = AssistSession.viewNodeWrapperStack.pop();
+            }else {
+                childNodeWrapper = childNode != null ? (ViewNodeWrapper) childNode.getValue() : null;
+            }
+            if (childNodeWrapper == null) return;
+            assistSession.drawRect(Utils.viewNodeRectMap.get(childNodeWrapper));
             assistSession.drawArrow();
-            setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer));
+            setComponent(childNodeWrapper);
+            int childCount = childNodeWrapper.getViewNode().getChildCount();
+            handlePointerBounds(AssistSession.selectedViewNode.getPositionInHierarchy(), childCount);
         });
     }
 
-    public void handlePointerBounds(int currentPos, int end){
+    public void handlePointerBounds(int currentPos, int childCount){
         componentTabViewholder.btnMoveLeft.setVisibility(currentPos != 0 ? View.VISIBLE : View.INVISIBLE);
-        componentTabViewholder.btnMoveRight.setVisibility(currentPos != end ? View.VISIBLE : View.INVISIBLE);
+        componentTabViewholder.btnMoveRight.setVisibility(childCount > 0 ? View.VISIBLE : View.INVISIBLE);
     }
 
     public void resetComponentView(){
@@ -142,12 +156,13 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         if (viewNodeWrapper == null || viewNodeWrapper.getViewNode() == null) {
             return;
         }
+        AssistSession.selectedViewNode = viewNodeWrapper;
         if (treeViewAdapter != null && hierarchyRecyclerView != null) {
             if (selectedNodePosition >= 0) {
                 hierarchy.get(selectedNodePosition).setSelected(false);
                 treeViewAdapter.notifyItemChanged(selectedNodePosition);
             }
-            int index = Utils.viewNodeIndexMap.getOrDefault(viewNodeWrapper,0);
+            int index = viewNodeWrapper.getPositionInHierarchy();
             selectedNodePosition = index;
             hierarchy.get(index).setSelected(true);
             treeViewAdapter.notifyItemChanged(index);

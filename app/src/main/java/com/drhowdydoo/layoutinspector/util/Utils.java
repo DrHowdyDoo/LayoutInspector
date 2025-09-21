@@ -23,7 +23,6 @@ import java.util.Map;
 public class Utils {
     public static final Map<ViewNodeWrapper, Rect> viewNodeRectMap = new LinkedHashMap<>();
     private static final List<TreeNode> componentTree = new ArrayList<>();
-    public static final Map<ViewNodeWrapper, Integer> viewNodeIndexMap = new HashMap<>();
     public static int statusBarOffset = 0;
     private static int index;
 
@@ -31,7 +30,6 @@ public class Utils {
         int windowNodeCount = assistStructure.getWindowNodeCount();
         componentTree.clear();
         viewNodeRectMap.clear();
-        viewNodeIndexMap.clear();
         index = 0;
         for (int i = 0; i < windowNodeCount; i++) {
             AssistStructure.WindowNode windowNode = assistStructure.getWindowNodeAt(i);
@@ -55,7 +53,7 @@ public class Utils {
             parent.addChild(root);
         }
         viewNodeWrapper.setDepth(depth);
-        viewNodeIndexMap.put(viewNodeWrapper,index);
+        viewNodeWrapper.setPositionInHierarchy(index);
         componentTree.add(root);
         index++;
 

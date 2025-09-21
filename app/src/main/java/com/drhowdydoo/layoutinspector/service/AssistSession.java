@@ -52,6 +52,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class AssistSession extends VoiceInteractionSession {
@@ -74,9 +75,8 @@ public class AssistSession extends VoiceInteractionSession {
     private boolean isExpanded = true;
     private Transition changeBoundTransition;
     private Transition autoTransition, slideAnimation;
-    public List<ViewNodeWrapper> viewNodes;
-    public int viewNodePointer = 0;
-    private static ViewNodeWrapper closestChild = null;
+    public static ViewNodeWrapper selectedViewNode = null;
+    public static Stack<ViewNodeWrapper> viewNodeWrapperStack = new Stack<>();
     private CoordinatorLayout draggableContainer;
 
     public AssistSession(Context context) {
@@ -310,17 +310,18 @@ public class AssistSession extends VoiceInteractionSession {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
-                    viewNodes = getViewNodeByCoordinates((int) event.getX(), (int) event.getY());
-                    viewNodePointer = closestChild != null ? viewNodes.indexOf(closestChild) : 0;
-                    viewPagerAdapter.handlePointerBounds(viewNodePointer, viewNodes.size() - 1);
+                    viewNodeWrapperStack.clear();
+                    ViewNodeWrapper viewNodeWrapper = getTreeNodeByCoordinates((int) event.getX(), (int) event.getY());
+                    if (viewNodeWrapper == null) return false;
+                    TreeNode treeNode = hierarchy.get(viewNodeWrapper.getPositionInHierarchy());
+                    viewPagerAdapter.handlePointerBounds(viewNodeWrapper.getPositionInHierarchy(), viewNodeWrapper.getViewNode().getChildCount());
                     oldX = (int) event.getX();
                     oldY = (int) event.getY();
+                    if (treeNode == null) return false;
+                    DistanceArrowDrawer.setArrowSet(viewNodeWrapper.getArrowSet());
+                    drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
+                    viewPagerAdapter.setComponent(viewNodeWrapper);
                 }
-                if (viewNodes == null || viewNodes.isEmpty()) return false;
-                ViewNodeWrapper viewNodeWrapper = viewNodes.get(viewNodePointer);
-                DistanceArrowDrawer.setArrowSet(viewNodeWrapper.getArrowSet());
-                drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
-                viewPagerAdapter.setComponent(viewNodeWrapper);
                 return false;
             }
         });
@@ -355,8 +356,7 @@ public class AssistSession extends VoiceInteractionSession {
         });
     }
 
-    public static List<ViewNodeWrapper> getViewNodeByCoordinates(int x, int y) {
-        List<ViewNodeWrapper> viewNodeStack = new ArrayList<>();
+    public static ViewNodeWrapper getTreeNodeByCoordinates(int x, int y) {
         int maxDepth = 0;
         for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
             Rect rect = entry.getValue();
@@ -364,15 +364,14 @@ public class AssistSession extends VoiceInteractionSession {
                 if (!entry.getKey().isVisible() || Utils.getLastSegmentOfClass(entry.getKey().getViewNode().getClassName()).equalsIgnoreCase("view")) {
                     continue;
                 }
-                viewNodeStack.add(entry.getKey());
                 int depth = entry.getKey().getDepth();
                 if (maxDepth <= depth) {
                     maxDepth = depth;
-                    closestChild = entry.getKey();
+                    selectedViewNode = entry.getKey();
                 }
             }
         }
-        return viewNodeStack;
+        return selectedViewNode;
     }
 
     private void showLayoutBounds(){
@@ -393,7 +392,7 @@ public class AssistSession extends VoiceInteractionSession {
     }
 
     public void drawArrow() {
-        DistanceArrowDrawer.setArrowSet(viewNodes.get(viewNodePointer).getArrowSet());
+        DistanceArrowDrawer.setArrowSet(AssistSession.selectedViewNode.getArrowSet());
     }
 
 
