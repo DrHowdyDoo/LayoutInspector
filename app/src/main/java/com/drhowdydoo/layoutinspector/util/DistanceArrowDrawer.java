@@ -33,13 +33,11 @@ public class DistanceArrowDrawer {
         textBoxPaint.setStyle(Paint.Style.FILL);
         textBoxPaint.setAntiAlias(true);
         textBoxPaint.setColor(paintColor);
-        textBoxPaint.setAlpha(75);
     }
 
     public static void notifyPaintChange(int color, float width){
         ArrowDrawer.notifyPaintChange(color, width);
         textBoxPaint.setColor(color);
-        textBoxPaint.setAlpha(70);
     }
 
     public static void onDraw(Canvas canvas, Context context) {

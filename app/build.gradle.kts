@@ -10,8 +10,8 @@ android {
         applicationId = "com.drhowdydoo.layoutinspector"
         minSdk = 29
         targetSdk = 36
-        versionCode = 9
-        versionName = "1.2.0"
+        versionCode = 10
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -232,6 +232,8 @@ public class AssistSession extends VoiceInteractionSession {
             if (insets.getSystemWindowInsetTop() == 0) Utils.statusBarOffset = -mAssistantView.visibleDisplayFrame.top;
             if (assistStructure == null) {
                 hierarchy.clear();
+                Utils.viewNodeRectMap.clear();
+                viewPagerAdapter.clearSelectedViewNodePosition();
             } else {
                 hierarchy = Utils.displayViewHierarchy(assistStructure);
             }
@@ -309,6 +311,10 @@ public class AssistSession extends VoiceInteractionSession {
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                if (hierarchy.isEmpty()) {
+                    viewPagerAdapter.showFunctionalityUnavailableIndicator();
+                    return false;
+                }
                 if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
                     viewNodeWrapperStack.clear();
                     ViewNodeWrapper viewNodeWrapper = getTreeNodeByCoordinates((int) event.getX(), (int) event.getY());

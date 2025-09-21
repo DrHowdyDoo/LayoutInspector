@@ -1,5 +1,7 @@
 package com.drhowdydoo.layoutinspector.adapter;
 
+import static android.view.View.VISIBLE;
+
 import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -93,8 +95,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             treeViewAdapter.setTreeNodes(hierarchy);
             treeViewAdapter.expandAll();
             boolean isEmpty = hierarchy.isEmpty();
-            holder.tvEmptyTree.setVisibility(isEmpty ? View.VISIBLE : View.INVISIBLE);
-            holder.recyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            holder.tvEmptyTree.setVisibility(isEmpty ? VISIBLE : View.INVISIBLE);
+            holder.recyclerView.setVisibility(isEmpty ? View.GONE : VISIBLE);
         }
 
         // Set up RecyclerView adapter and click listener
@@ -110,6 +112,12 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     private void bindComponentTabViewHolder(ComponentTabViewholder holder) {
         // Handle component tab view holder logic here
         componentTabViewholder = holder;
+        if (hierarchy.isEmpty()) {
+            componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
+        } else if (selectedNodePosition < 0) {
+            componentTabViewholder.tvSelectComponent.setVisibility(VISIBLE);
+        }
+        componentTabViewholder.tvEmptyComponentTree.setVisibility(hierarchy.isEmpty() ? VISIBLE : View.GONE);
 
         componentTabViewholder.btnMoveLeft.setOnClickListener(v -> {
             if (AssistSession.selectedViewNode == null) return;
@@ -143,13 +151,13 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     }
 
     public void handlePointerBounds(int currentPos, int childCount){
-        componentTabViewholder.btnMoveLeft.setVisibility(currentPos != 0 ? View.VISIBLE : View.INVISIBLE);
-        componentTabViewholder.btnMoveRight.setVisibility(childCount > 0 ? View.VISIBLE : View.INVISIBLE);
+        componentTabViewholder.btnMoveLeft.setVisibility(currentPos != 0 ? VISIBLE : View.INVISIBLE);
+        componentTabViewholder.btnMoveRight.setVisibility(childCount > 0 ? VISIBLE : View.INVISIBLE);
     }
 
     public void resetComponentView(){
         componentTabViewholder.containerComponentInfo.setVisibility(View.INVISIBLE);
-        componentTabViewholder.tvSelectComponent.setVisibility(View.VISIBLE);
+        componentTabViewholder.tvSelectComponent.setVisibility(VISIBLE);
     }
 
     public void setComponent(ViewNodeWrapper viewNodeWrapper){
@@ -171,23 +179,24 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
         AssistStructure.ViewNode viewNode = viewNodeWrapper.getViewNode();
 
-        componentTabViewholder.containerComponentInfo.setVisibility(View.VISIBLE);
+        componentTabViewholder.containerComponentInfo.setVisibility(VISIBLE);
         componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
+        componentTabViewholder.tvEmptyComponentTree.setVisibility(View.GONE);
         componentTabViewholder.imgComponentIcon.setBackgroundResource(DrawableManager.getDrawableForView(Utils.getLastSegmentOfClass(viewNode.getClassName())));
         componentTabViewholder.tvComponentName.setText(Utils.getLastSegmentOfClass(viewNode.getClassName()));
         String id = String.valueOf(viewNode.getIdEntry());
         if (!id.equalsIgnoreCase("null")) {
-            componentTabViewholder.tvComponentId.setVisibility(View.VISIBLE);
+            componentTabViewholder.tvComponentId.setVisibility(VISIBLE);
             componentTabViewholder.tvComponentId.setText(String.format("id: %s",id));
         }else {
-            componentTabViewholder.tvComponentId.setVisibility(View.GONE);
+            componentTabViewholder.tvComponentId.setVisibility(View.INVISIBLE);
         }
 
         String packageName = viewNode.getIdPackage();
         if (packageName == null || packageName.isEmpty()) {
             componentTabViewholder.containerPackage.setVisibility(View.GONE);
         } else {
-            componentTabViewholder.containerPackage.setVisibility(View.VISIBLE);
+            componentTabViewholder.containerPackage.setVisibility(VISIBLE);
             componentTabViewholder.tvPackage.setText(packageName);
             setThemeAttributes(packageName, viewNode.getId());
 
@@ -196,21 +205,21 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder.tvHeight.setText(String.format("%s dp", Utils.pxToDp(context, viewNode.getHeight())));
         if (viewNode.getText() != null) {
             setTextAttribute(viewNode);
-            componentTabViewholder.containerTextAttribute.setVisibility(View.VISIBLE);
+            componentTabViewholder.containerTextAttribute.setVisibility(VISIBLE);
         }else {
             componentTabViewholder.containerTextAttribute.setVisibility(View.GONE);
         }
 
         componentTabViewholder.tvAlpha.setText(String.valueOf(viewNode.getAlpha()));
         componentTabViewholder.tvElevation.setText(String.format("%s dp",Utils.pxToDp(context, (int) viewNode.getElevation())));
-        String visibility = viewNode.getVisibility() == View.VISIBLE ? "Visible" : "Invisible";
+        String visibility = viewNode.getVisibility() == VISIBLE ? "Visible" : "Invisible";
         componentTabViewholder.tvVisibility.setText(visibility);
         CharSequence contentDescription = viewNode.getContentDescription();
         if (contentDescription == null || contentDescription.toString().isEmpty()) {
             componentTabViewholder.containerContentDesc.setVisibility(View.GONE);
         }
         else {
-            componentTabViewholder.containerContentDesc.setVisibility(View.VISIBLE);
+            componentTabViewholder.containerContentDesc.setVisibility(VISIBLE);
             componentTabViewholder.tvContentDesc.setText(contentDescription);
         }
         componentTabViewholder.tvChildCount.setText(String.valueOf(viewNode.getChildCount()));
@@ -223,7 +232,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             int theme = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA).theme;
 
             String themeName = resources.getResourceEntryName(theme);
-            int themeContainerVisibility = themeName.isEmpty() ? View.GONE : View.VISIBLE;
+            int themeContainerVisibility = themeName.isEmpty() ? View.GONE : VISIBLE;
             componentTabViewholder.tvTheme.setText(resources.getResourceEntryName(theme));
             componentTabViewholder.containerTheme.setVisibility(themeContainerVisibility);
 
@@ -255,6 +264,15 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         return 2;
     }
 
+    public void showFunctionalityUnavailableIndicator() {
+        componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
+        componentTabViewholder.tvEmptyComponentTree.setVisibility(VISIBLE);
+    }
+
+    public void clearSelectedViewNodePosition() {
+        selectedNodePosition = -1;
+    }
+
     public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {
         RecyclerView recyclerView;
         TextView tvEmptyTree;
@@ -269,7 +287,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         ImageView imgComponentIcon;
         TextView tvPackage,tvWidth, tvHeight, tvComponentId,
                 tvComponentName,tvTextSize,tvTextColor,tvTextStyle,
-                tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme,tvChildCount;
+                tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme,tvChildCount,tvEmptyComponentTree;
         LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc,containerTheme;
         TextView tvSelectComponent;
         MaterialButton btnMoveLeft, btnMoveRight;
@@ -298,6 +316,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             btnMoveLeft = itemView.findViewById(R.id.btnMoveLeft);
             btnMoveRight = itemView.findViewById(R.id.btnMoveRight);
             tvChildCount = itemView.findViewById(R.id.tvChildCount);
+            tvEmptyComponentTree = itemView.findViewById(R.id.tvEmptyComponentTree);
         }
     }
 

@@ -10,6 +10,8 @@
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:paddingTop="12dp"
+            android:clipToPadding="true"
             android:scrollbars="vertical|horizontal"
             android:scrollbarThumbVertical="@drawable/scroll_thumb"
             android:scrollbarThumbHorizontal="@drawable/scroll_thumb"/>
@@ -26,6 +28,7 @@
             android:drawablePadding="8dp"
             android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
             android:text="@string/empty_treeview_msg"
-            android:drawableTop="@drawable/rounded_disabled_visible_24" />
+            android:drawableTop="@drawable/round_curtains_closed_24"
+            android:drawableTint="?colorError" />
 
 </FrameLayout>

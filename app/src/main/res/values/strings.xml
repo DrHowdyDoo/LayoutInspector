@@ -10,5 +10,5 @@
     <string name="info_step_4">Enable Use screenshot (Optional)</string>
     <string name="btn_open_assist_setting">Open Default Digital Assistant App Settings</string>
     <string name="gesture_instruction_info">Looks like you\'re all set 👍\n\nNow you can activate the layout inspector like google assistant.\nJust swipe up from a bottom corner to invoke Layout inspector if you are using gesture navigation otherwise you can press and hold Home button.</string>
-    <string name="empty_treeview_msg">Whoopsie daisy! This activity has its curtains drawn, no peeking allowed! 🎭🙈 </string>
+    <string name="empty_treeview_msg">Looks like this activity has its curtains drawn, no peeking allowed! 🫣 </string>
 </resources>

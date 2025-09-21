@@ -19,6 +19,21 @@
         android:drawableTop="@drawable/ic_touch_component"
         tools:ignore="UseCompatTextViewDrawableXml" />
 
+    <TextView
+        android:id="@+id/tvEmptyComponentTree"
+        android:visibility="gone"
+        android:drawableTop="@drawable/round_curtains_closed_24"
+        android:drawableTint="?colorError"
+        tools:visibility="visible"
+        android:paddingHorizontal="24dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:drawablePadding="8dp"
+        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+        android:text="@string/empty_treeview_msg" />
+
 
     <ScrollView
         android:layout_width="match_parent"

@@ -84,7 +84,9 @@
                                 android:layout_marginStart="8dp"
                                 android:layout_gravity="center_vertical"
                                 android:textStyle="bold"
-                                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"/>
+                                android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+                                android:drawableEnd="@drawable/rounded_arrow_drop_down_24"
+                                android:drawableTint="?colorOnBackground" />
 
                         </LinearLayout>
 
