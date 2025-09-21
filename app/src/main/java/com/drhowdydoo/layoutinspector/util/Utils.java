@@ -15,6 +15,7 @@ import com.drhowdydoo.layoutinspector.model.ArrowSet;
 import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,12 +23,16 @@ import java.util.Map;
 public class Utils {
     public static final Map<ViewNodeWrapper, Rect> viewNodeRectMap = new LinkedHashMap<>();
     private static final List<TreeNode> componentTree = new ArrayList<>();
+    public static final Map<ViewNodeWrapper, Integer> viewNodeIndexMap = new HashMap<>();
     public static int statusBarOffset = 0;
+    private static int index;
 
     public static List<TreeNode> displayViewHierarchy(AssistStructure assistStructure) {
         int windowNodeCount = assistStructure.getWindowNodeCount();
         componentTree.clear();
         viewNodeRectMap.clear();
+        viewNodeIndexMap.clear();
+        index = 0;
         for (int i = 0; i < windowNodeCount; i++) {
             AssistStructure.WindowNode windowNode = assistStructure.getWindowNodeAt(i);
             displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0, null, 0, statusBarOffset, true);
@@ -49,7 +54,9 @@ public class Utils {
         if (parent != null) {
             parent.addChild(root);
         }
+        viewNodeIndexMap.put(viewNodeWrapper,index);
         componentTree.add(root);
+        index++;
 
         // Calculate absolute position
         int left = leftOffset + viewNode.getLeft()  - viewNode.getScrollX();

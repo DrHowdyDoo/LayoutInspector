@@ -39,6 +39,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     private final Context context;
     private final AssistSession assistSession;
     private PackageManager pm;
+    private int selectedNodePosition = -1;
+    private RecyclerView hierarchyRecyclerView;
 
     public ViewPagerAdapter(Context context, AssistSession assistSession) {
         this.context = context;
@@ -81,6 +83,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         // Set up RecyclerView for hierarchy tab
         TreeViewHolderFactory factory = (v, layout) -> new HierarchyViewHolder(v);
         treeViewAdapter = new TreeViewAdapter(factory);
+        hierarchyRecyclerView = holder.recyclerView;
         holder.recyclerView.setHasFixedSize(true);
         TreeLayoutManager treeLayoutManager = new TreeLayoutManager(context);
         holder.recyclerView.setLayoutManager(treeLayoutManager);
@@ -100,7 +103,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         treeViewAdapter.setTreeNodeClickListener((treeNode, view) -> {
             ViewNodeWrapper viewNodeWrapper = (ViewNodeWrapper) treeNode.getValue();
             assistSession.drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
-            setComponent(viewNodeWrapper.getViewNode());
+            setComponent(viewNodeWrapper);
         });
     }
 
@@ -113,7 +116,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             handlePointerBounds(assistSession.viewNodePointer, assistSession.viewNodes.size() - 1);
             assistSession.drawRect(Utils.viewNodeRectMap.get(assistSession.viewNodes.get(assistSession.viewNodePointer)));
             assistSession.drawArrow();
-            setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer).getViewNode());
+            setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer));
         });
 
         componentTabViewholder.btnMoveRight.setOnClickListener(v -> {
@@ -121,7 +124,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             handlePointerBounds(assistSession.viewNodePointer, assistSession.viewNodes.size() - 1);
             assistSession.drawRect(Utils.viewNodeRectMap.get(assistSession.viewNodes.get(assistSession.viewNodePointer)));
             assistSession.drawArrow();
-            setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer).getViewNode());
+            setComponent(assistSession.viewNodes.get(assistSession.viewNodePointer));
         });
     }
 
@@ -135,7 +138,23 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder.tvSelectComponent.setVisibility(View.VISIBLE);
     }
 
-    public void setComponent(AssistStructure.ViewNode viewNode){
+    public void setComponent(ViewNodeWrapper viewNodeWrapper){
+        if (viewNodeWrapper == null || viewNodeWrapper.getViewNode() == null) {
+            return;
+        }
+        if (treeViewAdapter != null && hierarchyRecyclerView != null) {
+            if (selectedNodePosition >= 0) {
+                hierarchy.get(selectedNodePosition).setSelected(false);
+                treeViewAdapter.notifyItemChanged(selectedNodePosition);
+            }
+            int index = Utils.viewNodeIndexMap.getOrDefault(viewNodeWrapper,0);
+            selectedNodePosition = index;
+            hierarchy.get(index).setSelected(true);
+            treeViewAdapter.notifyItemChanged(index);
+            hierarchyRecyclerView.smoothScrollToPosition(index);
+        }
+
+        AssistStructure.ViewNode viewNode = viewNodeWrapper.getViewNode();
 
         componentTabViewholder.containerComponentInfo.setVisibility(View.VISIBLE);
         componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
@@ -179,6 +198,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             componentTabViewholder.containerContentDesc.setVisibility(View.VISIBLE);
             componentTabViewholder.tvContentDesc.setText(contentDescription);
         }
+        componentTabViewholder.tvChildCount.setText(String.valueOf(viewNode.getChildCount()));
 
     }
 
@@ -234,7 +254,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         ImageView imgComponentIcon;
         TextView tvPackage,tvWidth, tvHeight, tvComponentId,
                 tvComponentName,tvTextSize,tvTextColor,tvTextStyle,
-                tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme;
+                tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme,tvChildCount;
         LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc,containerTheme;
         TextView tvSelectComponent;
         MaterialButton btnMoveLeft, btnMoveRight;
@@ -262,6 +282,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             tvTheme = itemView.findViewById(R.id.tvTheme);
             btnMoveLeft = itemView.findViewById(R.id.btnMoveLeft);
             btnMoveRight = itemView.findViewById(R.id.btnMoveRight);
+            tvChildCount = itemView.findViewById(R.id.tvChildCount);
         }
     }
 

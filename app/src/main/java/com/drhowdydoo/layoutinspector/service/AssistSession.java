@@ -76,6 +76,7 @@ public class AssistSession extends VoiceInteractionSession {
     private Transition autoTransition, slideAnimation;
     public List<ViewNodeWrapper> viewNodes;
     public int viewNodePointer = 0;
+    private static ViewNodeWrapper closestChild = null;
     private CoordinatorLayout draggableContainer;
 
     public AssistSession(Context context) {
@@ -310,7 +311,7 @@ public class AssistSession extends VoiceInteractionSession {
             public boolean onTouch(View v, MotionEvent event) {
                 if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
                     viewNodes = getViewNodeByCoordinates((int) event.getX(), (int) event.getY());
-                    viewNodePointer = viewNodes.size() - 1;
+                    viewNodePointer = closestChild != null ? viewNodes.indexOf(closestChild) : 0;
                     viewPagerAdapter.handlePointerBounds(viewNodePointer, viewNodes.size() - 1);
                     oldX = (int) event.getX();
                     oldY = (int) event.getY();
@@ -319,7 +320,7 @@ public class AssistSession extends VoiceInteractionSession {
                 ViewNodeWrapper viewNodeWrapper = viewNodes.get(viewNodePointer);
                 DistanceArrowDrawer.setArrowSet(viewNodeWrapper.getArrowSet());
                 drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
-                viewPagerAdapter.setComponent(viewNodeWrapper.getViewNode());
+                viewPagerAdapter.setComponent(viewNodeWrapper);
                 return false;
             }
         });
@@ -356,15 +357,19 @@ public class AssistSession extends VoiceInteractionSession {
 
     public static List<ViewNodeWrapper> getViewNodeByCoordinates(int x, int y) {
         List<ViewNodeWrapper> viewNodeStack = new ArrayList<>();
+        float shortestDistance = Float.MAX_VALUE;
         for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
             Rect rect = entry.getValue();
             if (rect.contains(x, y)) {
                 if (!entry.getKey().isVisible() || Utils.getLastSegmentOfClass(entry.getKey().getViewNode().getClassName()).equalsIgnoreCase("view")) {
                     continue;
                 }
-                //Log.d(TAG, "getViewNodeByCoordinates: " + entry.getKey().getViewNode().getClassName());
                 viewNodeStack.add(entry.getKey());
-                if (entry.getKey().getViewNode().getChildCount() == 0) break;
+                float distance = (float) Math.hypot(rect.centerX() - x, rect.centerY() - y);
+                if (distance <= shortestDistance) {
+                    shortestDistance = distance;
+                    closestChild = entry.getKey();
+                }
             }
         }
         return viewNodeStack;
