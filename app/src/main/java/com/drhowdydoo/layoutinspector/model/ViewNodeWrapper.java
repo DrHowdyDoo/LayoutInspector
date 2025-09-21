@@ -8,6 +8,7 @@ public class ViewNodeWrapper {
     private AssistStructure.ViewNode viewNode;
     private boolean visibility;
     private ArrowSet arrowSet;
+    private int depth;
 
 
     public ViewNodeWrapper(AssistStructure.ViewNode viewNode, boolean visibility) {
@@ -47,5 +48,13 @@ public class ViewNodeWrapper {
 
     public void setArrowSet(ArrowSet arrowSet) {
         this.arrowSet = arrowSet;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 }

@@ -357,7 +357,7 @@ public class AssistSession extends VoiceInteractionSession {
 
     public static List<ViewNodeWrapper> getViewNodeByCoordinates(int x, int y) {
         List<ViewNodeWrapper> viewNodeStack = new ArrayList<>();
-        float shortestDistance = Float.MAX_VALUE;
+        int maxDepth = 0;
         for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
             Rect rect = entry.getValue();
             if (rect.contains(x, y)) {
@@ -365,9 +365,9 @@ public class AssistSession extends VoiceInteractionSession {
                     continue;
                 }
                 viewNodeStack.add(entry.getKey());
-                float distance = (float) Math.hypot(rect.centerX() - x, rect.centerY() - y);
-                if (distance <= shortestDistance) {
-                    shortestDistance = distance;
+                int depth = entry.getKey().getDepth();
+                if (maxDepth <= depth) {
+                    maxDepth = depth;
                     closestChild = entry.getKey();
                 }
             }

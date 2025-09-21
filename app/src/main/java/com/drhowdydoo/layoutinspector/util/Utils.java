@@ -54,6 +54,7 @@ public class Utils {
         if (parent != null) {
             parent.addChild(root);
         }
+        viewNodeWrapper.setDepth(depth);
         viewNodeIndexMap.put(viewNodeWrapper,index);
         componentTree.add(root);
         index++;
