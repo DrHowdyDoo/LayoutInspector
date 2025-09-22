@@ -124,11 +124,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             AssistSession.viewNodeWrapperStack.push(AssistSession.selectedViewNode);
             TreeNode parentNode = hierarchy.get(AssistSession.selectedViewNode.getPositionInHierarchy()).getParent();
             ViewNodeWrapper parentNodeWrapper = parentNode != null ? (ViewNodeWrapper) parentNode.getValue() : null;
+            setComponent(parentNodeWrapper);
             assistSession.drawRect(Utils.viewNodeRectMap.get(parentNodeWrapper));
             assistSession.drawArrow();
-            setComponent(parentNodeWrapper);
             int childCount = parentNodeWrapper != null ? parentNodeWrapper.getViewNode().getChildCount() : 0;
-            handlePointerBounds(AssistSession.selectedViewNode.getPositionInHierarchy(), childCount);
+            handleHierarchyNavigation(AssistSession.selectedViewNode.getPositionInHierarchy(), childCount);
         });
 
         componentTabViewholder.btnMoveRight.setOnClickListener(v -> {
@@ -142,15 +142,15 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
                 childNodeWrapper = childNode != null ? (ViewNodeWrapper) childNode.getValue() : null;
             }
             if (childNodeWrapper == null) return;
+            setComponent(childNodeWrapper);
             assistSession.drawRect(Utils.viewNodeRectMap.get(childNodeWrapper));
             assistSession.drawArrow();
-            setComponent(childNodeWrapper);
             int childCount = childNodeWrapper.getViewNode().getChildCount();
-            handlePointerBounds(AssistSession.selectedViewNode.getPositionInHierarchy(), childCount);
+            handleHierarchyNavigation(AssistSession.selectedViewNode.getPositionInHierarchy(), childCount);
         });
     }
 
-    public void handlePointerBounds(int currentPos, int childCount){
+    public void handleHierarchyNavigation(int currentPos, int childCount){
         componentTabViewholder.btnMoveLeft.setVisibility(currentPos != 0 ? VISIBLE : View.INVISIBLE);
         componentTabViewholder.btnMoveRight.setVisibility(childCount > 0 ? VISIBLE : View.INVISIBLE);
     }

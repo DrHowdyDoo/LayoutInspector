@@ -320,7 +320,7 @@ public class AssistSession extends VoiceInteractionSession {
                     ViewNodeWrapper viewNodeWrapper = getTreeNodeByCoordinates((int) event.getX(), (int) event.getY());
                     if (viewNodeWrapper == null) return false;
                     TreeNode treeNode = hierarchy.get(viewNodeWrapper.getPositionInHierarchy());
-                    viewPagerAdapter.handlePointerBounds(viewNodeWrapper.getPositionInHierarchy(), viewNodeWrapper.getViewNode().getChildCount());
+                    viewPagerAdapter.handleHierarchyNavigation(viewNodeWrapper.getPositionInHierarchy(), viewNodeWrapper.getViewNode().getChildCount());
                     oldX = (int) event.getX();
                     oldY = (int) event.getY();
                     if (treeNode == null) return false;

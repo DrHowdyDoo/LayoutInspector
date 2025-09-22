@@ -96,14 +96,20 @@ public class ArrowDrawer {
                                       double angle){
 
         // Length of the arrow head
-        float arrowHeadLength = 16;
-        // Coordinates of the arrow head
-        float arrowHeadX1 = endX - arrowHeadLength * (float) Math.cos(angle - Math.PI / 6);
-        float arrowHeadY1 = endY - arrowHeadLength * (float) Math.sin(angle - Math.PI / 6);
-        float arrowHeadX2 = endX - arrowHeadLength * (float) Math.cos(angle + Math.PI / 6);
-        float arrowHeadY2 = endY - arrowHeadLength * (float) Math.sin(angle + Math.PI / 6);
+        float arrowHeadLength = 16f;
 
-        arrowPath.moveTo(endX, endY);
+        // Shift the arrow tip slightly back so it aligns with the line border
+        float tipX = endX - (float) (arrowHeadLength * 0.5 * Math.cos(angle));
+        float tipY = endY - (float) (arrowHeadLength * 0.5 * Math.sin(angle));
+
+        // Coordinates of the arrow head
+        float arrowHeadX1 = tipX - arrowHeadLength * (float) Math.cos(angle - Math.PI / 6);
+        float arrowHeadY1 = tipY - arrowHeadLength * (float) Math.sin(angle - Math.PI / 6);
+
+        float arrowHeadX2 = tipX - arrowHeadLength * (float) Math.cos(angle + Math.PI / 6);
+        float arrowHeadY2 = tipY - arrowHeadLength * (float) Math.sin(angle + Math.PI / 6);
+
+        arrowPath.moveTo(tipX, tipY);
         arrowPath.lineTo(arrowHeadX1, arrowHeadY1);
         arrowPath.lineTo(arrowHeadX2, arrowHeadY2);
         arrowPath.close();
