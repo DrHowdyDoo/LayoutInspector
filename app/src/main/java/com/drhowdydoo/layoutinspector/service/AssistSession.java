@@ -231,10 +231,11 @@ public class AssistSession extends VoiceInteractionSession {
         mAssistantView.post(() -> {
             WindowInsets insets = mAssistantView.getRootWindowInsets();
             if (insets.getSystemWindowInsetTop() == 0) Utils.statusBarOffset = -mAssistantView.visibleDisplayFrame.top;
+            Utils.viewNodeRectMap.clear();
+            selectedViewNode = null;
+            viewPagerAdapter.clearSelectedViewNodePosition();
             if (assistStructure == null) {
                 hierarchy.clear();
-                Utils.viewNodeRectMap.clear();
-                viewPagerAdapter.clearSelectedViewNodePosition();
             } else {
                 hierarchy = Utils.displayViewHierarchy(assistStructure);
             }
@@ -325,8 +326,6 @@ public class AssistSession extends VoiceInteractionSession {
                     oldX = (int) event.getX();
                     oldY = (int) event.getY();
                     if (treeNode == null) return false;
-                    DistanceArrowDrawer.setArrowSet(viewNodeWrapper.getArrowSet());
-                    drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
                     viewPagerAdapter.showInHierarchyTab(viewNodeWrapper);
                     viewPagerAdapter.setComponent(viewNodeWrapper);
                 }
@@ -435,8 +434,8 @@ public class AssistSession extends VoiceInteractionSession {
        mAssistantView.drawRect(rect);
     }
 
-    public void drawArrow() {
-        DistanceArrowDrawer.setArrowSet(AssistSession.selectedViewNode.getArrowSet());
+    public void drawArrow(ViewNodeWrapper selectedViewNode) {
+        DistanceArrowDrawer.setArrowSet(selectedViewNode.getArrowSet());
     }
 
 

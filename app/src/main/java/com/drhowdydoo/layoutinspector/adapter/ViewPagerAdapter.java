@@ -108,9 +108,15 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         holder.recyclerView.setAdapter(treeViewAdapter);
         holder.recyclerView.setItemAnimator(null);
         treeViewAdapter.setTreeNodeClickListener((treeNode, view) -> {
+            if (selectedNodePosition >= 0) {
+                hierarchy.get(selectedNodePosition).setSelected(false);
+                treeViewAdapter.notifyItemChanged(selectedNodePosition);
+            }
+
             ViewNodeWrapper viewNodeWrapper = (ViewNodeWrapper) treeNode.getValue();
-            assistSession.drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
             setComponent(viewNodeWrapper);
+            treeNode.setSelected(true);
+            treeViewAdapter.notifyItemChanged(viewNodeWrapper.getPositionInHierarchy());
         });
     }
 
@@ -131,8 +137,6 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             ViewNodeWrapper parentNodeWrapper = parentNode != null ? (ViewNodeWrapper) parentNode.getValue() : null;
             showInHierarchyTab(parentNodeWrapper);
             setComponent(parentNodeWrapper);
-            assistSession.drawRect(Utils.viewNodeRectMap.get(parentNodeWrapper));
-            assistSession.drawArrow();
             int childCount = parentNodeWrapper != null ? parentNodeWrapper.getViewNode().getChildCount() : 0;
             handleHierarchyNavigation(AssistSession.selectedViewNode.getPositionInHierarchy(), childCount);
         });
@@ -152,8 +156,6 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             if (childNodeWrapper == null) return;
             showInHierarchyTab(childNodeWrapper);
             setComponent(childNodeWrapper);
-            assistSession.drawRect(Utils.viewNodeRectMap.get(childNodeWrapper));
-            assistSession.drawArrow();
             int childCount = childNodeWrapper.getViewNode().getChildCount();
             handleHierarchyNavigation(AssistSession.selectedViewNode.getPositionInHierarchy(), childCount);
         });
@@ -233,6 +235,10 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         if (viewNodeWrapper == null || viewNodeWrapper.getViewNode() == null) {
             return;
         }
+
+        Log.d("TAG", "setComponent: " + Utils.viewNodeRectMap.get(viewNodeWrapper).flattenToString());
+        assistSession.drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
+        assistSession.drawArrow(viewNodeWrapper);
         AssistSession.selectedViewNode = viewNodeWrapper;
         selectedNodePosition = viewNodeWrapper.getPositionInHierarchy();
         AssistStructure.ViewNode viewNode = viewNodeWrapper.getViewNode();

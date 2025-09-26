@@ -6,6 +6,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 
 import com.amrdeveloper.treeview.TreeNode;
@@ -64,7 +65,9 @@ public class Utils {
         index++;
 
         // Calculate absolute position
-        int left = leftOffset + viewNode.getLeft()  - viewNode.getScrollX();
+        Log.d("TAG", "displayViewHierarchyRecursive: " + viewNode.getIdEntry() + " " + leftOffset + " " + viewNode.getLeft() + " " + viewNode.getScrollX());
+
+        int left = leftOffset + viewNode.getLeft() - viewNode.getScrollX();
         int top = topOffset + viewNode.getTop() - viewNode.getScrollY();
         int right = left + viewNode.getWidth();
         int bottom = top + viewNode.getHeight();
