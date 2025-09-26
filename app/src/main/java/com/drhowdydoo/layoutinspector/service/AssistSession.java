@@ -52,6 +52,7 @@ import com.google.android.material.tabs.TabLayoutMediator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Stack;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -326,6 +327,7 @@ public class AssistSession extends VoiceInteractionSession {
                     if (treeNode == null) return false;
                     DistanceArrowDrawer.setArrowSet(viewNodeWrapper.getArrowSet());
                     drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
+                    viewPagerAdapter.showInHierarchyTab(viewNodeWrapper);
                     viewPagerAdapter.setComponent(viewNodeWrapper);
                 }
                 return false;
@@ -362,23 +364,59 @@ public class AssistSession extends VoiceInteractionSession {
         });
     }
 
-    public static ViewNodeWrapper getTreeNodeByCoordinates(int x, int y) {
-        int maxDepth = 0;
+    public ViewNodeWrapper getTreeNodeByCoordinates(int x, int y) {
+        ArrayList<ViewNodeWrapper> candidates = new ArrayList<>();
+        int maxDepthForLeaf = -1;
+        int maxDepthForParent = -1;
+        ViewNodeWrapper lastNode = null;
+        ViewNodeWrapper topMostParentNode = null;
+        ViewNodeWrapper topMostLeafNode = null;
         for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
             Rect rect = entry.getValue();
+            ViewNodeWrapper node = entry.getKey();
             if (rect.contains(x, y)) {
-                if (!entry.getKey().isVisible() || Utils.getLastSegmentOfClass(entry.getKey().getViewNode().getClassName()).equalsIgnoreCase("view")) {
+                if (skipInvisibleViews(node)) {
                     continue;
                 }
-                int depth = entry.getKey().getDepth();
-                if (maxDepth <= depth) {
-                    maxDepth = depth;
-                    selectedViewNode = entry.getKey();
-                }
+                candidates.add(node);
+                Log.d(TAG, "getTreeNodeByCoordinates: " + node.getViewNode().getClassName() + " " + String.valueOf(node.getViewNode().getIdEntry()) + " at " + node.getDepth() + " " + node.getViewNode().getWidth());
             }
         }
-        return selectedViewNode;
+
+        lastNode = candidates.get(candidates.size() - 1);
+        if (candidates.size() == 1) return lastNode;
+
+        for (int i = candidates.size() - 1; i > 0; i--) {
+            ViewNodeWrapper current = candidates.get(i);
+
+            if (maxDepthForLeaf < current.getDepth() && current.getViewNode().getChildCount() == 0) {
+                topMostLeafNode = current;
+                maxDepthForLeaf = current.getDepth();
+            }
+
+            if (maxDepthForParent < current.getDepth() && current.getViewNode().getChildCount() > 0) {
+                topMostParentNode = current;
+                maxDepthForParent = current.getDepth();
+            }
+        }
+
+        if (topMostLeafNode != null && !isScrimView(topMostLeafNode)) return topMostLeafNode;
+        if (topMostParentNode != null) return topMostParentNode;
+        return lastNode;
+
     }
+
+    private boolean skipInvisibleViews(ViewNodeWrapper node) {
+        return !node.isVisible() && preferences.getInt("SETTINGS_VIEW_TYPE", View.VISIBLE) == View.VISIBLE;
+    }
+
+    private boolean isScrimView(ViewNodeWrapper viewNodeWrapper) {
+        ViewNodeWrapper root = (ViewNodeWrapper) hierarchy.get(0).getValue();
+        ViewNodeWrapper subroot = (ViewNodeWrapper) hierarchy.get(1).getValue();
+        return Utils.getLastSegmentOfClass(viewNodeWrapper.getViewNode().getClassName()).equalsIgnoreCase("View") &&
+                viewNodeWrapper.getViewNode().getWidth() == root.getViewNode().getWidth() && viewNodeWrapper.getViewNode().getHeight() >= subroot.getViewNode().getHeight();
+    }
+
 
     private void showLayoutBounds(){
             List<Rect> layoutBounds = new ArrayList<>();

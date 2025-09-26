@@ -45,7 +45,12 @@ public class Utils {
                                                       int topOffset,
                                                       boolean isVisible) {
 
-        isVisible = isVisible & (viewNode.getVisibility() == View.VISIBLE);
+        isVisible = isVisible
+                && (viewNode.getVisibility() == View.VISIBLE)
+                && (viewNode.getWidth() > 0)
+                && (viewNode.getHeight() > 0)
+                && (viewNode.getAlpha() > 0.05f);
+
         ViewNodeWrapper viewNodeWrapper = new ViewNodeWrapper(viewNode, isVisible);
 
         TreeNode root = new TreeNode(viewNodeWrapper, R.layout.hierarchy_tree_node);
@@ -53,6 +58,7 @@ public class Utils {
             parent.addChild(root);
         }
         viewNodeWrapper.setDepth(depth);
+        viewNodeWrapper.setLevelInParent(root.getLevel());
         viewNodeWrapper.setPositionInHierarchy(index);
         componentTree.add(root);
         index++;
@@ -88,6 +94,7 @@ public class Utils {
             }
         }
     }
+
 
 
 

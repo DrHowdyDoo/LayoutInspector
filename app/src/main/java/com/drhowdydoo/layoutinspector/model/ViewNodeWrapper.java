@@ -9,6 +9,7 @@ public class ViewNodeWrapper {
     private boolean visibility;
     private ArrowSet arrowSet;
     private int depth;
+    private int levelInParent;
     private int positionInHierarchy;
 
 
@@ -65,5 +66,13 @@ public class ViewNodeWrapper {
 
     public void setPositionInHierarchy(int positionInHierarchy) {
         this.positionInHierarchy = positionInHierarchy;
+    }
+
+    public int getLevelInParent() {
+        return levelInParent;
+    }
+
+    public void setLevelInParent(int levelInParent) {
+        this.levelInParent = levelInParent;
     }
 }

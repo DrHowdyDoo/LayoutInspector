@@ -6,6 +6,7 @@ import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.PointF;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSmoothScroller;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.amrdeveloper.treeview.TreeNode;
@@ -30,6 +33,7 @@ import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @SuppressWarnings({"InnerClassMayBeStatic","RawUseOfParameterized"})
@@ -93,6 +97,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         // Bind hierarchy data
         if (hierarchy != null) {
             treeViewAdapter.setTreeNodes(hierarchy);
+            treeViewAdapter.collapseAll();
             treeViewAdapter.expandAll();
             boolean isEmpty = hierarchy.isEmpty();
             holder.tvEmptyTree.setVisibility(isEmpty ? VISIBLE : View.INVISIBLE);
@@ -124,6 +129,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             AssistSession.viewNodeWrapperStack.push(AssistSession.selectedViewNode);
             TreeNode parentNode = hierarchy.get(AssistSession.selectedViewNode.getPositionInHierarchy()).getParent();
             ViewNodeWrapper parentNodeWrapper = parentNode != null ? (ViewNodeWrapper) parentNode.getValue() : null;
+            showInHierarchyTab(parentNodeWrapper);
             setComponent(parentNodeWrapper);
             assistSession.drawRect(Utils.viewNodeRectMap.get(parentNodeWrapper));
             assistSession.drawArrow();
@@ -134,14 +140,17 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder.btnMoveRight.setOnClickListener(v -> {
             if (AssistSession.selectedViewNode == null) return;
             int position = AssistSession.selectedViewNode.getPositionInHierarchy();
-            TreeNode childNode = hierarchy.get(position).getChildren() != null ? hierarchy.get(position).getChildren().get(0) : null;
-            ViewNodeWrapper childNodeWrapper = null;
+            LinkedList<TreeNode> children = hierarchy.get(position).getChildren();
+            if (children == null || children.isEmpty()) return;
+            TreeNode childNode = children.get(0);
+            ViewNodeWrapper childNodeWrapper;
             if (!AssistSession.viewNodeWrapperStack.isEmpty()) {
                 childNodeWrapper = AssistSession.viewNodeWrapperStack.pop();
             }else {
                 childNodeWrapper = childNode != null ? (ViewNodeWrapper) childNode.getValue() : null;
             }
             if (childNodeWrapper == null) return;
+            showInHierarchyTab(childNodeWrapper);
             setComponent(childNodeWrapper);
             assistSession.drawRect(Utils.viewNodeRectMap.get(childNodeWrapper));
             assistSession.drawArrow();
@@ -160,23 +169,72 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder.tvSelectComponent.setVisibility(VISIBLE);
     }
 
+    public void smoothScrollToCenter(RecyclerView recyclerView, int position) {
+        if (recyclerView == null || recyclerView.getLayoutManager() == null) return;
+
+        RecyclerView.LayoutManager lm = recyclerView.getLayoutManager();
+        if (!(lm instanceof LinearLayoutManager)) return;
+
+        LinearLayoutManager layoutManager = (LinearLayoutManager) lm;
+
+        int first = layoutManager.findFirstCompletelyVisibleItemPosition();
+        int last = layoutManager.findLastCompletelyVisibleItemPosition();
+
+        // If item is already fully visible, don’t scroll
+        if (position >= first && position <= last) {
+            return;
+        }
+
+        RecyclerView.SmoothScroller smoothScroller = getSmoothScroller(recyclerView, position, layoutManager);
+        recyclerView.getLayoutManager().startSmoothScroll(smoothScroller);
+    }
+
+    private static RecyclerView.SmoothScroller getSmoothScroller(RecyclerView recyclerView, int position, LinearLayoutManager layoutManager) {
+        RecyclerView.SmoothScroller smoothScroller = new LinearSmoothScroller(recyclerView.getContext()) {
+            @Override
+            protected int getVerticalSnapPreference() {
+                return SNAP_TO_ANY; // not start or end, we'll handle offset manually
+            }
+
+            @Override
+            public PointF computeScrollVectorForPosition(int targetPosition) {
+                return layoutManager.computeScrollVectorForPosition(targetPosition);
+            }
+
+            @Override
+            public int calculateDtToFit(int viewStart, int viewEnd,
+                                           int boxStart, int boxEnd,
+                                           int snapPreference) {
+                int viewCenter = (viewStart + viewEnd) / 2;
+                int boxCenter = (boxStart + boxEnd) / 2;
+                return boxCenter - viewCenter; // shift so item lands in center
+            }
+        };
+
+        smoothScroller.setTargetPosition(position);
+        return smoothScroller;
+    }
+
+
+    public void showInHierarchyTab(ViewNodeWrapper viewNodeWrapper){
+            if (treeViewAdapter != null && hierarchyRecyclerView != null) {
+                if (selectedNodePosition >= 0) {
+                    hierarchy.get(selectedNodePosition).setSelected(false);
+                    treeViewAdapter.notifyItemChanged(selectedNodePosition);
+                }
+                int index = viewNodeWrapper != null ? viewNodeWrapper.getPositionInHierarchy() : 0;
+                hierarchy.get(index).setSelected(true);
+                treeViewAdapter.notifyItemChanged(index);
+                smoothScrollToCenter(hierarchyRecyclerView, index);
+            }
+    }
+
     public void setComponent(ViewNodeWrapper viewNodeWrapper){
         if (viewNodeWrapper == null || viewNodeWrapper.getViewNode() == null) {
             return;
         }
         AssistSession.selectedViewNode = viewNodeWrapper;
-        if (treeViewAdapter != null && hierarchyRecyclerView != null) {
-            if (selectedNodePosition >= 0) {
-                hierarchy.get(selectedNodePosition).setSelected(false);
-                treeViewAdapter.notifyItemChanged(selectedNodePosition);
-            }
-            int index = viewNodeWrapper.getPositionInHierarchy();
-            selectedNodePosition = index;
-            hierarchy.get(index).setSelected(true);
-            treeViewAdapter.notifyItemChanged(index);
-            hierarchyRecyclerView.smoothScrollToPosition(index);
-        }
-
+        selectedNodePosition = viewNodeWrapper.getPositionInHierarchy();
         AssistStructure.ViewNode viewNode = viewNodeWrapper.getViewNode();
 
         componentTabViewholder.containerComponentInfo.setVisibility(VISIBLE);
