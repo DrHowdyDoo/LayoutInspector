@@ -364,46 +364,45 @@ public class AssistSession extends VoiceInteractionSession {
     }
 
     public ViewNodeWrapper getTreeNodeByCoordinates(int x, int y) {
-        ArrayList<ViewNodeWrapper> candidates = new ArrayList<>();
-        int maxDepthForLeaf = -1;
-        int maxDepthForParent = -1;
-        ViewNodeWrapper lastNode = null;
-        ViewNodeWrapper topMostParentNode = null;
-        ViewNodeWrapper topMostLeafNode = null;
+        List<ViewNodeWrapper> candidates = new ArrayList<>();
+
+        // Collect all candidate nodes containing the point
         for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
-            Rect rect = entry.getValue();
             ViewNodeWrapper node = entry.getKey();
-            if (rect.contains(x, y)) {
-                if (skipInvisibleViews(node)) {
-                    continue;
-                }
-                candidates.add(node);
-                Log.d(TAG, "getTreeNodeByCoordinates: " + node.getViewNode().getClassName() + " " + String.valueOf(node.getViewNode().getIdEntry()) + " at " + node.getDepth() + " " + node.getViewNode().getWidth());
+            Rect rect = entry.getValue();
+
+            if (!rect.contains(x, y) || skipInvisibleViews(node)) {
+                continue;
             }
+
+            candidates.add(node);
+            Log.d(TAG, String.format(
+                    "getTreeNodeByCoordinates: %s %s at depth=%d width=%d",
+                    node.getViewNode().getClassName(),
+                    node.getViewNode().getIdEntry(),
+                    node.getDepth(),
+                    node.getViewNode().getWidth()
+            ));
         }
 
-        lastNode = candidates.get(candidates.size() - 1);
-        if (candidates.size() == 1) return lastNode;
+        ViewNodeWrapper topMostParentNode = null;
 
-        for (int i = candidates.size() - 1; i > 0; i--) {
+        // Traverse candidates from deepest (last) to shallowest
+        for (int i = candidates.size() - 1; i >= 0; i--) {
             ViewNodeWrapper current = candidates.get(i);
 
-            if (maxDepthForLeaf < current.getDepth() && current.getViewNode().getChildCount() == 0) {
-                topMostLeafNode = current;
-                maxDepthForLeaf = current.getDepth();
+            if (current.getViewNode().getChildCount() == 0 && !isScrimView(current)) {
+                return current; // return leaf immediately
             }
 
-            if (maxDepthForParent < current.getDepth() && current.getViewNode().getChildCount() > 0) {
+            if (topMostParentNode == null && current.getViewNode().getChildCount() > 0) {
                 topMostParentNode = current;
-                maxDepthForParent = current.getDepth();
             }
         }
 
-        if (topMostLeafNode != null && !isScrimView(topMostLeafNode)) return topMostLeafNode;
-        if (topMostParentNode != null) return topMostParentNode;
-        return lastNode;
-
+        return topMostParentNode;
     }
+
 
     private boolean skipInvisibleViews(ViewNodeWrapper node) {
         return !node.isVisible() && preferences.getInt("SETTINGS_VIEW_TYPE", View.VISIBLE) == View.VISIBLE;
@@ -411,9 +410,8 @@ public class AssistSession extends VoiceInteractionSession {
 
     private boolean isScrimView(ViewNodeWrapper viewNodeWrapper) {
         ViewNodeWrapper root = (ViewNodeWrapper) hierarchy.get(0).getValue();
-        ViewNodeWrapper subroot = (ViewNodeWrapper) hierarchy.get(1).getValue();
         return Utils.getLastSegmentOfClass(viewNodeWrapper.getViewNode().getClassName()).equalsIgnoreCase("View") &&
-                viewNodeWrapper.getViewNode().getWidth() == root.getViewNode().getWidth() && viewNodeWrapper.getViewNode().getHeight() >= subroot.getViewNode().getHeight();
+                viewNodeWrapper.getViewNode().getWidth() == root.getViewNode().getWidth();
     }
 
 
