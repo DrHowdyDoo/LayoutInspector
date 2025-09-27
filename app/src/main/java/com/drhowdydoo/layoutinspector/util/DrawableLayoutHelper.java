@@ -24,7 +24,7 @@ public class DrawableLayoutHelper {
     }
 
     public static void notifyPreferenceChange(){
-        paintColor = preferences.getInt("SETTINGS_STROKE_COLOR", Color.GREEN);
+        paintColor = preferences.getInt("SETTINGS_STROKE_COLOR", Color.parseColor("#2E7D32"));
         paintWidth = preferences.getFloat("SETTINGS_STROKE_WIDTH", 2.5f);
         showLayoutBounds = preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false);
         showViewPosition = preferences.getBoolean("SETTINGS_SHOW_VIEW_POSITION", false);

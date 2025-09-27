@@ -54,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.Stack;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -80,6 +81,18 @@ public class AssistSession extends VoiceInteractionSession {
     public static ViewNodeWrapper selectedViewNode = null;
     public static Stack<ViewNodeWrapper> viewNodeWrapperStack = new Stack<>();
     private CoordinatorLayout draggableContainer;
+
+    private static final Set<String> VIEWGROUP_CLASSES = Set.of(
+            "android.widget.FrameLayout",
+            "android.widget.LinearLayout",
+            "android.widget.RelativeLayout",
+            "androidx.constraintlayout.widget.ConstraintLayout",
+            "android.widget.ScrollView",
+            "android.widget.GridLayout",
+            "androidx.coordinatorlayout.widget.CoordinatorLayout",
+            "androidx.recyclerview.widget.RecyclerView",
+            "android.view.ViewGroup"
+    );
 
     public AssistSession(Context context) {
         super(context);
@@ -148,6 +161,7 @@ public class AssistSession extends VoiceInteractionSession {
         MaterialButton btnRed = settingsCard.findViewById(R.id.btnRed);
         MaterialButton btnBlue = settingsCard.findViewById(R.id.btnBlue);
         MaterialButton btnPurple = settingsCard.findViewById(R.id.btnPurple);
+        MaterialButton btnPink = settingsCard.findViewById(R.id.btnPink);
         TextView tvViewTypeToShowBoundsFor = settingsCard.findViewById(R.id.tvViewTypeToShow);
         View settingsOverlay = settingsCard.findViewById(R.id.settings_overlay);
         MaterialButton unitsDpBtn = settingsCard.findViewById(R.id.unit_dp_btn);
@@ -162,24 +176,30 @@ public class AssistSession extends VoiceInteractionSession {
         tvViewTypeToShowBoundsFor.setText(viewType < 0 ? "All" : viewType == View.VISIBLE ? "Visible views" : "Invisible views");
 
         btnGreen.setOnClickListener(v -> {
-            editor.putInt("SETTINGS_STROKE_COLOR",Color.GREEN).apply();
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.parseColor("#2E7D32")).apply();
             mAssistantView.notifyPaintChange();
         });
 
         btnRed.setOnClickListener(v -> {
-            editor.putInt("SETTINGS_STROKE_COLOR",Color.RED).apply();
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.parseColor("#C62828")).apply();
             mAssistantView.notifyPaintChange();
         });
 
         btnBlue.setOnClickListener(v -> {
-            editor.putInt("SETTINGS_STROKE_COLOR",Color.BLUE).apply();
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.parseColor("#1565C0")).apply();
             mAssistantView.notifyPaintChange();
         });
 
         btnPurple.setOnClickListener(v -> {
-            editor.putInt("SETTINGS_STROKE_COLOR",Color.MAGENTA).apply();
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.parseColor("#FF8F00")).apply();
             mAssistantView.notifyPaintChange();
         });
+
+        btnPink.setOnClickListener(v -> {
+            editor.putInt("SETTINGS_STROKE_COLOR",Color.parseColor("#FF4081")).apply();
+            mAssistantView.notifyPaintChange();
+        });
+
 
         widthSlider.addOnChangeListener((rangeSlider, value, fromUser) -> {
             editor.putFloat("SETTINGS_STROKE_WIDTH",value).apply();
@@ -431,8 +451,10 @@ public class AssistSession extends VoiceInteractionSession {
 
     private boolean isScrimView(ViewNodeWrapper viewNodeWrapper) {
         ViewNodeWrapper root = (ViewNodeWrapper) hierarchy.get(0).getValue();
-        return Utils.getLastSegmentOfClass(viewNodeWrapper.getViewNode().getClassName()).equalsIgnoreCase("View") &&
+        boolean scrimview = Utils.getLastSegmentOfClass(viewNodeWrapper.getViewNode().getClassName()).equalsIgnoreCase("View") &&
                 viewNodeWrapper.getViewNode().getWidth() == root.getViewNode().getWidth();
+        boolean isViewGroup = VIEWGROUP_CLASSES.contains(viewNodeWrapper.getViewNode().getClassName());
+        return scrimview || isViewGroup;
     }
 
 
