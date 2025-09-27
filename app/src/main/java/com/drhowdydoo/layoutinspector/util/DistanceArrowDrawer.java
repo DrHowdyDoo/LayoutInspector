@@ -17,6 +17,7 @@ public class DistanceArrowDrawer {
     private static final int ARROW_TOP = 1;
     private static final int ARROW_RIGHT = 2;
     private static final int ARROW_BOTTOM = 3;
+    private static int mMeasurementUnit ;
 
 
     public static void init(Context context, int paintColor, float strokeWidth){
@@ -98,7 +99,7 @@ public class DistanceArrowDrawer {
         canvas.drawRoundRect(rectF, radius, radius, textBoxPaint);
         float x = (rectF.left + rectF.right) / 2;
         float y = (rectF.top + rectF.bottom) / 2 + (textPaint.getTextSize() / 3) ;
-        canvas.drawText(String.format("%s dp", Utils.pxToDp(context, distance)), x, y, textPaint);
+        canvas.drawText(getMeasurement(context, distance), x, y, textPaint);
     }
 
     private static void applyWindowsInset(Canvas canvas){
@@ -157,6 +158,14 @@ public class DistanceArrowDrawer {
         }
     }
 
+    private static String getMeasurement(Context context, float measurement){
+        if (mMeasurementUnit == 0) {
+            return String.format("%s dp", Utils.pxToDp(context, measurement));
+        } else {
+            return String.format("%s px",(int) measurement);
+        }
+    }
+
     public static void clearCanvas(){
         ArrowDrawer.clearCanvas();
     }
@@ -166,4 +175,7 @@ public class DistanceArrowDrawer {
         ArrowDrawer.setArrowSet(newArrowSet);
     }
 
+    public static void notifyMeasurementUnitChange(int measurementUnit) {
+        mMeasurementUnit = measurementUnit;
+    }
 }

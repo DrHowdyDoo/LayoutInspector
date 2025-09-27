@@ -43,6 +43,7 @@ import com.drhowdydoo.layoutinspector.util.DrawableLayoutHelper;
 import com.drhowdydoo.layoutinspector.util.LayoutBoundsDrawer;
 import com.drhowdydoo.layoutinspector.util.Utils;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonGroup;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
@@ -149,6 +150,8 @@ public class AssistSession extends VoiceInteractionSession {
         MaterialButton btnPurple = settingsCard.findViewById(R.id.btnPurple);
         TextView tvViewTypeToShowBoundsFor = settingsCard.findViewById(R.id.tvViewTypeToShow);
         View settingsOverlay = settingsCard.findViewById(R.id.settings_overlay);
+        MaterialButton unitsDpBtn = settingsCard.findViewById(R.id.unit_dp_btn);
+        MaterialButton unitsPxBtn = settingsCard.findViewById(R.id.unit_px_btn);
 
         tvViewTypeToShowBoundsFor.setOnClickListener(v -> showMenu(v, R.menu.popup_menu));
 
@@ -199,6 +202,31 @@ public class AssistSession extends VoiceInteractionSession {
             settingsCard.setVisibility(View.GONE);
             isSettingsShown = false;
         });
+
+        int measurementUnit = preferences.getInt("APP_SETTINGS_UNIT_TYPE",0);
+        Log.d(TAG, "setUpSettings: " + measurementUnit);
+        if (measurementUnit == 0) {
+            unitsDpBtn.setChecked(true);
+            unitsPxBtn.setChecked(false);
+        } else {
+            unitsDpBtn.setChecked(false);
+            unitsPxBtn.setChecked(true);
+        }
+
+        unitsDpBtn.setOnClickListener(v -> {
+            editor.putInt("APP_SETTINGS_UNIT_TYPE",0).apply();
+            viewPagerAdapter.setMeasurementUnitType(0);
+            unitsPxBtn.setChecked(false);
+            mAssistantView.notifyPreferenceChange();
+        });
+
+        unitsPxBtn.setOnClickListener(v -> {
+            editor.putInt("APP_SETTINGS_UNIT_TYPE",1).apply();
+            viewPagerAdapter.setMeasurementUnitType(1);
+            unitsDpBtn.setChecked(false);
+            mAssistantView.notifyPreferenceChange();
+        });
+
     }
 
     private void showMenu(View v, int menu){
@@ -376,13 +404,6 @@ public class AssistSession extends VoiceInteractionSession {
             }
 
             candidates.add(node);
-            Log.d(TAG, String.format(
-                    "getTreeNodeByCoordinates: %s %s at depth=%d width=%d",
-                    node.getViewNode().getClassName(),
-                    node.getViewNode().getIdEntry(),
-                    node.getDepth(),
-                    node.getViewNode().getWidth()
-            ));
         }
 
         ViewNodeWrapper topMostParentNode = null;

@@ -14,6 +14,7 @@ public class DrawableLayoutHelper {
     private static float paintWidth;
     private static boolean showLayoutBounds;
     private static boolean showViewPosition;
+    private static int measurementUnit;
 
     public static void init(Context context){
         preferences = context.getSharedPreferences("com.drhowdydoo.layoutinspector.preferences", MODE_PRIVATE);
@@ -27,13 +28,14 @@ public class DrawableLayoutHelper {
         paintWidth = preferences.getFloat("SETTINGS_STROKE_WIDTH", 2.5f);
         showLayoutBounds = preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false);
         showViewPosition = preferences.getBoolean("SETTINGS_SHOW_VIEW_POSITION", false);
+        measurementUnit = preferences.getInt("APP_SETTINGS_UNIT_TYPE", 0);
+        DistanceArrowDrawer.notifyMeasurementUnitChange(measurementUnit);
     }
 
     public static void notifyPaintChange(){
         notifyPreferenceChange();
         LayoutBoundsDrawer.notifyPaintChange(paintColor, paintWidth);
         DistanceArrowDrawer.notifyPaintChange(paintColor, paintWidth);
-
     }
 
     public static void onDraw(Canvas canvas, Context context){

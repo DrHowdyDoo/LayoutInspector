@@ -47,6 +47,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     private PackageManager pm;
     private int selectedNodePosition = -1;
     private RecyclerView hierarchyRecyclerView;
+    private int measurementUnitType = 0;
 
     public ViewPagerAdapter(Context context, AssistSession assistSession) {
         this.context = context;
@@ -235,8 +236,6 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         if (viewNodeWrapper == null || viewNodeWrapper.getViewNode() == null) {
             return;
         }
-
-        Log.d("TAG", "setComponent: " + Utils.viewNodeRectMap.get(viewNodeWrapper).flattenToString());
         assistSession.drawRect(Utils.viewNodeRectMap.get(viewNodeWrapper));
         assistSession.drawArrow(viewNodeWrapper);
         AssistSession.selectedViewNode = viewNodeWrapper;
@@ -265,8 +264,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             setThemeAttributes(packageName, viewNode.getId());
 
         }
-        componentTabViewholder.tvWidth.setText(String.format("%s dp", Utils.pxToDp(context, viewNode.getWidth())));
-        componentTabViewholder.tvHeight.setText(String.format("%s dp", Utils.pxToDp(context, viewNode.getHeight())));
+        componentTabViewholder.tvWidth.setText(getMeasurement(viewNode.getWidth()));
+        componentTabViewholder.tvHeight.setText(getMeasurement(viewNode.getHeight()));
         if (viewNode.getText() != null) {
             setTextAttribute(viewNode);
             componentTabViewholder.containerTextAttribute.setVisibility(VISIBLE);
@@ -275,7 +274,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         }
 
         componentTabViewholder.tvAlpha.setText(String.valueOf(viewNode.getAlpha()));
-        componentTabViewholder.tvElevation.setText(String.format("%s dp",Utils.pxToDp(context, (int) viewNode.getElevation())));
+        componentTabViewholder.tvElevation.setText(getMeasurement(viewNode.getElevation()));
         String visibility = viewNode.getVisibility() == VISIBLE ? "Visible" : "Invisible";
         componentTabViewholder.tvVisibility.setText(visibility);
         CharSequence contentDescription = viewNode.getContentDescription();
@@ -288,6 +287,14 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         }
         componentTabViewholder.tvChildCount.setText(String.valueOf(viewNode.getChildCount()));
 
+    }
+
+    private String getMeasurement(float measurement){
+        if (measurementUnitType == 0) {
+            return String.format("%s dp", Utils.pxToDp(context, measurement));
+        } else {
+            return String.format("%s px", (int) measurement);
+        }
     }
 
     private void setThemeAttributes(String packageName, int id) {
@@ -335,6 +342,18 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     public void clearSelectedViewNodePosition() {
         selectedNodePosition = -1;
+    }
+
+    public void setMeasurementUnitType(int measurementUnitType) {
+        this.measurementUnitType = measurementUnitType;
+        notifyMeasurementUnitChange();
+    }
+
+    private void notifyMeasurementUnitChange() {
+        if (AssistSession.selectedViewNode == null) return;
+        componentTabViewholder.tvWidth.setText(getMeasurement(AssistSession.selectedViewNode.getViewNode().getWidth()));
+        componentTabViewholder.tvHeight.setText(getMeasurement(AssistSession.selectedViewNode.getViewNode().getHeight()));
+        componentTabViewholder.tvElevation.setText(getMeasurement(AssistSession.selectedViewNode.getViewNode().getElevation()));
     }
 
     public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {
