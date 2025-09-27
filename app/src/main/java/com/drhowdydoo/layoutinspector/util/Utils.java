@@ -65,10 +65,10 @@ public class Utils {
         index++;
 
         // Calculate absolute position
-        Log.d("TAG", "displayViewHierarchyRecursive: " + viewNode.getIdEntry() + " " + leftOffset + " " + viewNode.getLeft() + " " + viewNode.getScrollX());
-
-        int left = leftOffset + viewNode.getLeft() - viewNode.getScrollX();
-        int top = topOffset + viewNode.getTop() - viewNode.getScrollY();
+        int scrollX = viewNode.getChildCount() > 0 ? viewNode.getScrollX() : 0;
+        int scrollY = viewNode.getChildCount() > 0 ? viewNode.getScrollY() : 0;
+        int left = leftOffset + viewNode.getLeft() - scrollX;
+        int top = topOffset + viewNode.getTop() - scrollY;
         int right = left + viewNode.getWidth();
         int bottom = top + viewNode.getHeight();
         Rect rect = new Rect(left, top , right, bottom);
@@ -130,6 +130,13 @@ public class Utils {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
         return Math.round(dp * displayMetrics.density);
     }
+
+    public static float dpToPxAccurate(Context context, float dp) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        float px = dp * displayMetrics.density;
+        return Math.round(px * 100f) / 100f; // round to 2 decimal places
+    }
+
 
     public static String intToHexString(int color) {
         return String.format("#%06X", (0xFFFFFF & color));

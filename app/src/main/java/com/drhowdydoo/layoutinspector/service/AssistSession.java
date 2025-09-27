@@ -166,6 +166,7 @@ public class AssistSession extends VoiceInteractionSession {
         View settingsOverlay = settingsCard.findViewById(R.id.settings_overlay);
         MaterialButton unitsDpBtn = settingsCard.findViewById(R.id.unit_dp_btn);
         MaterialButton unitsPxBtn = settingsCard.findViewById(R.id.unit_px_btn);
+        TextView tvMeasurementUnitLabel = settingsCard.findViewById(R.id.tvMeasurementUnitLabel);
 
         tvViewTypeToShowBoundsFor.setOnClickListener(v -> showMenu(v, R.menu.popup_menu));
 
@@ -246,6 +247,8 @@ public class AssistSession extends VoiceInteractionSession {
             unitsDpBtn.setChecked(false);
             mAssistantView.notifyPreferenceChange();
         });
+
+        tvMeasurementUnitLabel.setText(String.format("%s (1 dp ~ %s px)", tvMeasurementUnitLabel.getText(), Utils.dpToPxAccurate(getContext(), 1f)));
 
     }
 

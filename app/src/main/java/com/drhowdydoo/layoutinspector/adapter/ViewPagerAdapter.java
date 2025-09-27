@@ -232,6 +232,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             }
     }
 
+
     public void setComponent(ViewNodeWrapper viewNodeWrapper){
         if (viewNodeWrapper == null || viewNodeWrapper.getViewNode() == null) {
             return;
