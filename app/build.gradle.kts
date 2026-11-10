@@ -4,14 +4,14 @@ plugins {
 
 android {
     namespace = "com.drhowdydoo.layoutinspector"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.drhowdydoo.layoutinspector"
         minSdk = 29
-        targetSdk = 36
-        versionCode = 12
-        versionName = "1.2.3"
+        targetSdk = 37
+        versionCode = 13
+        versionName = "1.2.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -38,9 +38,9 @@ android {
 
 dependencies {
 
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("com.google.android.material:material:1.14.0-alpha04")
-    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+    implementation("androidx.appcompat:appcompat:1.8.0")
+    implementation("com.google.android.material:material:1.14.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.2.2")
     implementation("io.github.amrdeveloper:treeview:1.2.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
 }
