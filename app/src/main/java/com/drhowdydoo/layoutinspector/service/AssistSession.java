@@ -6,8 +6,12 @@ import android.annotation.SuppressLint;
 import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -395,6 +399,7 @@ public class AssistSession extends VoiceInteractionSession {
         viewPagerAdapter = new ViewPagerAdapter(getContext(), this);
         viewPager.setAdapter(viewPagerAdapter);
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> tab.setText(position == 0 ? "Component" : "Hierarchy")).attach();
+        applyRoundedTabRipples();
     }
 
     private void setUpClickListeners() {
@@ -569,6 +574,47 @@ public class AssistSession extends VoiceInteractionSession {
 
     public void drawArrow(ViewNodeWrapper selectedViewNode) {
         DistanceArrowDrawer.setArrowSet(selectedViewNode.getArrowSet());
+    }
+
+    private void applyRoundedTabRipples() {
+        if (tabLayout == null || tabLayout.getTabCount() == 0) {
+            return;
+        }
+
+        // TabLayout's first child is its internal tab strip.
+        View child = tabLayout.getChildAt(0);
+
+        if (!(child instanceof ViewGroup)) {
+            return;
+        }
+
+        ViewGroup tabStrip = (ViewGroup) child;
+
+        ColorStateList rippleColors = tabLayout.getTabRippleColor();
+
+        if (rippleColors == null) {
+            return;
+        }
+
+        float radius = 21f * getContext().getResources()
+                .getDisplayMetrics().density;
+
+        for (int i = 0; i < tabStrip.getChildCount(); i++) {
+            View tab = tabStrip.getChildAt(i);
+
+            GradientDrawable mask = new GradientDrawable();
+            mask.setShape(GradientDrawable.RECTANGLE);
+            mask.setColor(Color.WHITE);
+            mask.setCornerRadius(radius);
+
+            RippleDrawable ripple = new RippleDrawable(
+                    rippleColors,
+                    new ColorDrawable(Color.TRANSPARENT),
+                    mask
+            );
+
+            tab.setBackground(ripple);
+        }
     }
 
 
