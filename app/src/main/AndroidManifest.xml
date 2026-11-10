@@ -20,26 +20,43 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.ASSIST" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
         <service
             android:name=".service.AssistService"
             android:permission="android.permission.BIND_VOICE_INTERACTION"
-            android:exported="false">
+            android:exported="true">
+
             <meta-data
                 android:name="android.voice_interaction"
                 android:resource="@xml/assist_service"/>
+
             <intent-filter>
                 <action android:name="android.service.voice.VoiceInteractionService"/>
             </intent-filter>
         </service>
 
         <service
+            android:name=".service.AssistRecognitionService"
+            android:permission="android.permission.BIND_SPEECH_RECOGNITION_SERVICE"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+            </intent-filter>
+        </service>
+
+        <service
             android:name=".service.AssistSessionService"
-            android:permission="android.permission.BIND_VOICE_INTERACTION"/>
+            android:permission="android.permission.BIND_VOICE_INTERACTION"
+            android:exported="true"/>
 
     </application>
 
