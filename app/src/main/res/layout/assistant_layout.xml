@@ -17,7 +17,7 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_bg"
-            style="?attr/materialCardViewFilledStyle"
+            style="?attr/materialCardViewOutlinedStyle"
             android:layout_width="match_parent"
             android:layout_height="312dp"
             android:layout_marginHorizontal="12dp"
