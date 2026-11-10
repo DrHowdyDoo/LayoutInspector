@@ -122,7 +122,8 @@ public class ArrowDrawer {
     }
 
     public static void clearCanvas(){
-        arrowSet.clear();
+        // Never clear the ArrowSet owned by a ViewNodeWrapper; the model may be selected again.
+        arrowSet = new ArrowSet();
     }
 
 }

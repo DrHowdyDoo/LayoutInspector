@@ -8,6 +8,7 @@ import android.provider.Settings;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +25,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+        Log.d("AssistantDebug", "MainActivity: onCreate()");
+        Log.d("AssistantDebug", "Action: " + getIntent().getAction());
         DynamicColors.applyToActivityIfAvailable(this);
         setViewContent();
     }
@@ -87,4 +90,10 @@ public class MainActivity extends AppCompatActivity {
         ACTIVITY_RESUMED = true;
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d("AssistantDebug", "MainActivity: onNewIntent()");
+        Log.d("AssistantDebug", "Action: " + intent.getAction());
+    }
 }

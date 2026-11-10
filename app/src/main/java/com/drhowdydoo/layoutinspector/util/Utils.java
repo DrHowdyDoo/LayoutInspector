@@ -2,111 +2,134 @@ package com.drhowdydoo.layoutinspector.util;
 
 import android.app.assist.AssistStructure;
 import android.content.Context;
-import android.graphics.Matrix;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 
 import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
-import com.drhowdydoo.layoutinspector.model.Arrow;
-import com.drhowdydoo.layoutinspector.model.ArrowSet;
 import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CancellationException;
 
 public class Utils {
-    public static final Map<ViewNodeWrapper, Rect> viewNodeRectMap = new LinkedHashMap<>();
-    private static final List<TreeNode> componentTree = new ArrayList<>();
-    public static int statusBarOffset = 0;
-    private static int index;
 
-    public static List<TreeNode> displayViewHierarchy(AssistStructure assistStructure) {
-        int windowNodeCount = assistStructure.getWindowNodeCount();
-        componentTree.clear();
-        viewNodeRectMap.clear();
-        index = 0;
-        for (int i = 0; i < windowNodeCount; i++) {
-            AssistStructure.WindowNode windowNode = assistStructure.getWindowNodeAt(i);
-            displayViewHierarchyRecursive(windowNode.getRootViewNode(), 0, null, 0, statusBarOffset, true);
+    /**
+     * A completed hierarchy snapshot. The roots are supplied to TreeViewAdapter; flatNodes
+     * preserve the depth-first index used by component selection and parent/child navigation.
+     */
+    public static final class HierarchyResult {
+        private final List<TreeNode> roots;
+        private final List<TreeNode> flatNodes;
+
+        private HierarchyResult(List<TreeNode> roots, List<TreeNode> flatNodes) {
+            this.roots = roots;
+            this.flatNodes = flatNodes;
         }
-        return componentTree;
+
+        public List<TreeNode> getRoots() {
+            return roots;
+        }
+
+        public List<TreeNode> getFlatNodes() {
+            return flatNodes;
+        }
+
+        public static HierarchyResult empty() {
+            return new HierarchyResult(new ArrayList<>(), new ArrayList<>());
+        }
     }
 
-    private static void displayViewHierarchyRecursive(AssistStructure.ViewNode viewNode,
-                                                      int depth,
-                                                      TreeNode parent,
-                                                      int leftOffset,
-                                                      int topOffset,
-                                                      boolean isVisible) {
+    /** Builds an independent snapshot. No shared static collections are read or modified. */
+    public static HierarchyResult displayViewHierarchy(AssistStructure assistStructure,
+                                                       int statusBarOffset) {
+        if (assistStructure == null) return HierarchyResult.empty();
 
-        isVisible = isVisible
-                && (viewNode.getVisibility() == View.VISIBLE)
-                && (viewNode.getWidth() > 0)
-                && (viewNode.getHeight() > 0)
-                && (viewNode.getAlpha() > 0.05f);
+        List<TreeNode> roots = new ArrayList<>();
+        List<TreeNode> flatNodes = new ArrayList<>();
+        int windowNodeCount = assistStructure.getWindowNodeCount();
 
-        ViewNodeWrapper viewNodeWrapper = new ViewNodeWrapper(viewNode, isVisible);
+        for (int i = 0; i < windowNodeCount; i++) {
+            throwIfCancelled();
+            AssistStructure.WindowNode windowNode = assistStructure.getWindowNodeAt(i);
+            AssistStructure.ViewNode rootViewNode = windowNode != null
+                    ? windowNode.getRootViewNode() : null;
+            if (rootViewNode == null) continue;
 
-        TreeNode root = new TreeNode(viewNodeWrapper, R.layout.hierarchy_tree_node);
-        if (parent != null) {
-            parent.addChild(root);
+            TreeNode root = buildViewHierarchy(rootViewNode, 0, null,
+                    0, statusBarOffset, true, flatNodes);
+            if (root != null) roots.add(root);
         }
-        viewNodeWrapper.setDepth(depth);
-        viewNodeWrapper.setLevelInParent(root.getLevel());
-        viewNodeWrapper.setPositionInHierarchy(index);
-        componentTree.add(root);
-        index++;
 
-        // Calculate absolute position
-        int scrollX = viewNode.getChildCount() > 0 ? viewNode.getScrollX() : 0;
-        int scrollY = viewNode.getChildCount() > 0 ? viewNode.getScrollY() : 0;
+        return new HierarchyResult(roots, flatNodes);
+    }
+
+    private static TreeNode buildViewHierarchy(AssistStructure.ViewNode viewNode,
+                                               int depth,
+                                               TreeNode parent,
+                                               int leftOffset,
+                                               int topOffset,
+                                               boolean parentVisible,
+                                               List<TreeNode> flatNodes) {
+        throwIfCancelled();
+
+        boolean isVisible = parentVisible
+                && viewNode.getVisibility() == View.VISIBLE
+                && viewNode.getWidth() > 0
+                && viewNode.getHeight() > 0
+                && viewNode.getAlpha() > 0.05f;
+
+        int childCount = viewNode.getChildCount();
+        int scrollX = childCount > 0 ? viewNode.getScrollX() : 0;
+        int scrollY = childCount > 0 ? viewNode.getScrollY() : 0;
         int left = leftOffset + viewNode.getLeft() - scrollX;
         int top = topOffset + viewNode.getTop() - scrollY;
-        int right = left + viewNode.getWidth();
-        int bottom = top + viewNode.getHeight();
-        Rect rect = new Rect(left, top , right, bottom);
-        Matrix transformation = viewNode.getTransformation();
-        if (transformation != null) {
-            transformation.mapRect(new RectF(rect));
+        Rect bounds = new Rect(left, top, left + viewNode.getWidth(), top + viewNode.getHeight());
+
+        AssistStructure.ViewNode parentViewNode = null;
+        if (parent != null && parent.getValue() instanceof ViewNodeWrapper) {
+            parentViewNode = ((ViewNodeWrapper) parent.getValue()).getViewNode();
         }
 
-        if (parent != null) {
-            ViewNodeWrapper parentViewNodeWrapper = (ViewNodeWrapper) parent.getValue();
-            AssistStructure.ViewNode parentViewNode = parentViewNodeWrapper.getViewNode();
-            ArrowSet arrowSet = new ArrowSet(new Arrow(left, (top + bottom) / 2,  leftOffset - parentViewNode.getScrollX(), (top + bottom) / 2),
-                    new Arrow(left + viewNode.getWidth(), (top + bottom) / 2, parentViewNode.getWidth() + leftOffset - parentViewNode.getScrollX(), (top + bottom) / 2),
-                    new Arrow((left + right) / 2, top, (left + right) / 2, topOffset - parentViewNode.getScrollY()),
-                    new Arrow((left + right) / 2, top + viewNode.getHeight(), (left + right) / 2, parentViewNode.getHeight() + topOffset - parentViewNode.getScrollY()));
+        int position = flatNodes.size();
+        ViewNodeWrapper wrapper = new ViewNodeWrapper(
+                viewNode,
+                isVisible,
+                bounds,
+                depth,
+                depth,
+                position,
+                parentViewNode,
+                leftOffset,
+                topOffset);
+        TreeNode treeNode = new TreeNode(wrapper, R.layout.hierarchy_tree_node);
+        if (parent != null) parent.addChild(treeNode);
+        flatNodes.add(treeNode);
 
-            viewNodeWrapper.setArrowSet(arrowSet);
-        }
-
-        viewNodeRectMap.put(viewNodeWrapper, rect);
-
-        // Traverse children
-        if (viewNode.getChildCount() > 0) {
-            for (int i = 0; i < viewNode.getChildCount(); i++) {
-                displayViewHierarchyRecursive(viewNode.getChildAt(i), depth + 1, root, left, top, isVisible);
+        for (int i = 0; i < childCount; i++) {
+            throwIfCancelled();
+            AssistStructure.ViewNode child = viewNode.getChildAt(i);
+            if (child != null) {
+                buildViewHierarchy(child, depth + 1, treeNode, left, top,
+                        isVisible, flatNodes);
             }
+        }
+
+        return treeNode;
+    }
+
+    private static void throwIfCancelled() {
+        if (Thread.currentThread().isInterrupted()) {
+            throw new CancellationException("Hierarchy build was superseded");
         }
     }
 
-
-
-
     public static String getLastSegmentOfClass(String className) {
-        if (className == null || className.isEmpty()) {
-            return "";
-        }
-        String[] segments = className.split("\\.");
-        return segments[segments.length - 1];
+        if (className == null || className.isEmpty()) return "";
+        int separator = className.lastIndexOf('.');
+        return separator >= 0 ? className.substring(separator + 1) : className;
     }
 
     public static int pxToDp(Context context, float px) {
@@ -116,14 +139,12 @@ public class Utils {
 
     public static int pxToSp(Context context, int px) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        float scaledDensity = displayMetrics.scaledDensity;
-        return Math.round(px / scaledDensity);
+        return Math.round(px / displayMetrics.scaledDensity);
     }
 
     public static int spToPx(Context context, int sp) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        float scaledDensity = displayMetrics.scaledDensity;
-        return Math.round(sp * scaledDensity);
+        return Math.round(sp * displayMetrics.scaledDensity);
     }
 
     public static int dpToPx(Context context, float dp) {
@@ -133,13 +154,10 @@ public class Utils {
 
     public static float dpToPxAccurate(Context context, float dp) {
         DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        float px = dp * displayMetrics.density;
-        return Math.round(px * 100f) / 100f; // round to 2 decimal places
+        return Math.round(dp * displayMetrics.density * 100f) / 100f;
     }
-
 
     public static String intToHexString(int color) {
         return String.format("#%06X", (0xFFFFFF & color));
     }
-
 }

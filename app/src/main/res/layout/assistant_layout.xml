@@ -8,7 +8,6 @@
     android:visibility="invisible"
     tools:visibility="visible"
     android:fitsSystemWindows="true"
-    android:animateLayoutChanges="true"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -95,7 +94,6 @@
                     android:id="@+id/viewPager"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
-                    android:animateLayoutChanges="true"
                     android:clipToPadding="false"
                     android:paddingTop="4dp"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -131,13 +129,12 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <include
-            android:id="@+id/settings_layout"
-            layout="@layout/settings_layout"
+        <ViewStub
+            android:id="@+id/settings_stub"
+            android:inflatedId="@+id/settings_layout"
+            android:layout="@layout/settings_layout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            tools:visibility="visible" />
+            android:layout_height="match_parent" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

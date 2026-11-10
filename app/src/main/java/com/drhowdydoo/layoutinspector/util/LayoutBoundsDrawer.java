@@ -58,8 +58,11 @@ public class LayoutBoundsDrawer {
     }
 
     private static void drawLayoutBounds(Canvas canvas) {
-        for (Rect rect : layoutBounds) {
-            canvas.drawRect(rect, multiBoundPaint);
+        for (Rect bounds : layoutBounds) {
+            if (bounds != null && bounds.width() > 0 && bounds.height() > 0
+                    && !canvas.quickReject(bounds.left, bounds.top, bounds.right, bounds.bottom, Canvas.EdgeType.BW)) {
+                canvas.drawRect(bounds, multiBoundPaint);
+            }
         }
     }
 
@@ -68,7 +71,12 @@ public class LayoutBoundsDrawer {
     }
 
     public static void drawRect(Rect newRect){
-        rect = newRect;
+        if (newRect == null) {
+            rect.setEmpty();
+        } else {
+            // Keep the overlay's current selection separate from the immutable hierarchy bounds.
+            rect.set(newRect);
+        }
     }
 
     public static void clearCanvas(){

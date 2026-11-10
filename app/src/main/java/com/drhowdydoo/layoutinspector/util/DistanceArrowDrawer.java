@@ -12,7 +12,7 @@ public class DistanceArrowDrawer {
     private static Paint textPaint;
     private static Paint textBoxPaint;
     private static ArrowSet arrowSet;
-    private static RectF rectF;
+    private static final RectF rectF = new RectF();
     private static final int ARROW_LEFT = 0;
     private static final int ARROW_TOP = 1;
     private static final int ARROW_RIGHT = 2;
@@ -88,7 +88,7 @@ public class DistanceArrowDrawer {
         float top = y - (height / 2f);
         float right = x + (width / 2f);
         float bottom = y + (height / 2f);
-        rectF = new RectF(left, top, right, bottom);
+        rectF.set(left, top, right, bottom);
         adjustLabel(canvas, distance, arrowDirection);
         applyWindowsInset(canvas);
         drawDistanceLabel(context,canvas, rectF, distance);
@@ -167,7 +167,9 @@ public class DistanceArrowDrawer {
     }
 
     public static void clearCanvas(){
-        ArrowDrawer.clearCanvas();
+        // Detach the previous node's model instead of mutating its cached ArrowSet.
+        arrowSet = new ArrowSet();
+        ArrowDrawer.setArrowSet(arrowSet);
     }
 
     public static void setArrowSet(ArrowSet newArrowSet) {

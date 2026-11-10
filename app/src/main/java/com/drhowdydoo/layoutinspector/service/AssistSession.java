@@ -9,6 +9,8 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.service.voice.VoiceInteractionSession;
 import android.util.Log;
 import android.view.Gravity;
@@ -22,11 +24,11 @@ import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.view.ViewStub;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.transition.AutoTransition;
 import androidx.transition.ChangeBounds;
 import androidx.transition.Slide;
 import androidx.transition.Transition;
@@ -43,7 +45,6 @@ import com.drhowdydoo.layoutinspector.util.DrawableLayoutHelper;
 import com.drhowdydoo.layoutinspector.util.LayoutBoundsDrawer;
 import com.drhowdydoo.layoutinspector.util.Utils;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.button.MaterialButtonGroup;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
@@ -51,48 +52,63 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class AssistSession extends VoiceInteractionSession {
 
     private static final String TAG = "AssistSession";
-    private AssistStructure assistStructure;
     private Animation slideUpAnimation, slideDownAnimation;
     private MaterialCardView mCardView;
     private FrameLayout settingsCard;
+    private ViewStub settingsStub;
     private DrawableFrameLayout mAssistantView;
     private ViewPager2 viewPager;
     private TabLayout tabLayout;
     private ViewPagerAdapter viewPagerAdapter;
-    private List<TreeNode> hierarchy = new ArrayList<>();
+    // flatHierarchy is depth-first and is used for stable node indexes/navigation.
+    // hierarchyRoots contains only actual window roots and is passed to TreeViewAdapter.
+    private List<TreeNode> flatHierarchy = new ArrayList<>();
+    private List<TreeNode> hierarchyRoots = new ArrayList<>();
     private MaterialButton btnSettings,btnExpandCollapse;
     private boolean isSettingsShown = false;
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
-    private int oldX = 0, oldY = 0;
     private boolean isExpanded = true;
     private Transition changeBoundTransition;
-    private Transition autoTransition, slideAnimation;
     public static ViewNodeWrapper selectedViewNode = null;
     public static Stack<ViewNodeWrapper> viewNodeWrapperStack = new Stack<>();
     private CoordinatorLayout draggableContainer;
 
-    private static final Set<String> VIEWGROUP_CLASSES = Set.of(
-            "android.widget.FrameLayout",
-            "android.widget.LinearLayout",
-            "android.widget.RelativeLayout",
-            "androidx.constraintlayout.widget.ConstraintLayout",
-            "android.widget.ScrollView",
-            "android.widget.GridLayout",
-            "androidx.coordinatorlayout.widget.CoordinatorLayout",
-            "androidx.recyclerview.widget.RecyclerView",
-            "android.view.ViewGroup"
+    private static final Set<String> VIEWGROUP_CLASSES = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(
+                    "android.widget.FrameLayout",
+                    "android.widget.LinearLayout",
+                    "android.widget.RelativeLayout",
+                    "androidx.constraintlayout.widget.ConstraintLayout",
+                    "android.widget.ScrollView",
+                    "android.widget.GridLayout",
+                    "androidx.coordinatorlayout.widget.CoordinatorLayout",
+                    "androidx.recyclerview.widget.RecyclerView",
+                    "android.view.ViewGroup"
+            ))
     );
+
+    private final ExecutorService hierarchyExecutor = Executors.newSingleThreadExecutor();
+    private final AtomicInteger hierarchyGeneration = new AtomicInteger();
+    private volatile Future<?> hierarchyTask;
+
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     public AssistSession(Context context) {
         super(context);
@@ -104,13 +120,16 @@ public class AssistSession extends VoiceInteractionSession {
         preferences = getContext().getSharedPreferences("com.drhowdydoo.layoutinspector.preferences", MODE_PRIVATE);
         editor = preferences.edit();
         super.onCreate();
+        Log.d("AssistantDebug", "AssistSession: onCreate()");
     }
 
     @Override
     public void onShow(@Nullable Bundle args, int showFlags) {
-        Log.d(TAG, "onShow() ");
-        mAssistantView.setVisibility(View.VISIBLE);
-        mCardView.startAnimation(slideUpAnimation);
+        Log.d("AssistantDebug", "AssistSession: onShow()");
+        if (mAssistantView != null) mAssistantView.setVisibility(View.VISIBLE);
+        if (mCardView != null && slideUpAnimation != null) {
+            mCardView.startAnimation(slideUpAnimation);
+        }
         super.onShow(args, showFlags);
     }
 
@@ -118,10 +137,12 @@ public class AssistSession extends VoiceInteractionSession {
     public void onHide() {
         Log.d(TAG, "onHide() ");
         DrawableLayoutHelper.clearCanvas();
-        viewPagerAdapter.resetComponentView();
-        mAssistantView.setVisibility(View.INVISIBLE);
-        mCardView.startAnimation(slideDownAnimation);
-        settingsCard.setVisibility(View.GONE);
+        if (viewPagerAdapter != null) viewPagerAdapter.resetComponentView();
+        if (mAssistantView != null) mAssistantView.setVisibility(View.INVISIBLE);
+        if (mCardView != null && slideDownAnimation != null) {
+            mCardView.startAnimation(slideDownAnimation);
+        }
+        if (settingsCard != null) settingsCard.setVisibility(View.GONE);
         isSettingsShown = false;
         super.onHide();
     }
@@ -130,7 +151,7 @@ public class AssistSession extends VoiceInteractionSession {
     @SuppressWarnings("ClickableViewAccessibility")
     @Override
     public View onCreateContentView() {
-        Log.d(TAG, "onCreateContentView: ");
+        Log.d("AssistantDebug", "AssistSession: onCreateContentView()");
 
         LayoutInflater inflater = getLayoutInflater();
         mAssistantView = (DrawableFrameLayout) inflater.inflate(R.layout.assistant_layout, null);
@@ -139,7 +160,7 @@ public class AssistSession extends VoiceInteractionSession {
         viewPager = mAssistantView.findViewById(R.id.viewPager);
         btnSettings = mAssistantView.findViewById(R.id.btnSetting);
         tabLayout = mAssistantView.findViewById(R.id.tabLayout);
-        settingsCard = mAssistantView.findViewById(R.id.settings_layout);
+        settingsStub = mAssistantView.findViewById(R.id.settings_stub);
         btnExpandCollapse = mAssistantView.findViewById(R.id.btnExpandCollapse);
         draggableContainer = mAssistantView.findViewById(R.id.draggable_container);
 
@@ -147,11 +168,18 @@ public class AssistSession extends VoiceInteractionSession {
         setUpViewPagerWithTab();
         setUpClickListeners();
         setUpTouchListener();
-        setUpSettings();
 
         return mAssistantView;
     }
 
+
+    private void inflateSettingsIfNeeded() {
+        if (settingsCard != null) return;
+        if (settingsStub == null) return;
+        settingsCard = (FrameLayout) settingsStub.inflate();
+        settingsCard.setVisibility(View.GONE);
+        setUpSettings();
+    }
 
     private void setUpSettings() {
         Slider widthSlider = settingsCard.findViewById(R.id.widthSlider);
@@ -209,7 +237,12 @@ public class AssistSession extends VoiceInteractionSession {
 
         switchLayoutBounds.setOnCheckedChangeListener((buttonView, isChecked) -> {
             editor.putBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", isChecked).apply();
-            if (isChecked) showLayoutBounds();
+            if (isChecked) {
+                showLayoutBounds();
+            } else {
+                // Release the previous hierarchy snapshot held by the overlay drawer.
+                LayoutBoundsDrawer.updateLayoutBounds(new ArrayList<>());
+            }
             mAssistantView.notifyPreferenceChange();
         });
 
@@ -248,7 +281,7 @@ public class AssistSession extends VoiceInteractionSession {
             mAssistantView.notifyPreferenceChange();
         });
 
-        tvMeasurementUnitLabel.setText(String.format("%s (1 dp ~ %s px)", tvMeasurementUnitLabel.getText(), Utils.dpToPxAccurate(getContext(), 1f)));
+        tvMeasurementUnitLabel.setText(String.format("%s (1 dp ~ %s px)",   tvMeasurementUnitLabel.getText(), Utils.dpToPxAccurate(getContext(), 1f)));
 
     }
 
@@ -276,33 +309,78 @@ public class AssistSession extends VoiceInteractionSession {
     @Override
     public void onHandleAssist(@NonNull AssistState state) {
         super.onHandleAssist(state);
-        Log.d("TAG", "onHandleAssist: ");
 
-        assistStructure = state.getAssistStructure();
-        mAssistantView.post(() -> {
+        final AssistStructure structure = state.getAssistStructure();
+        final int generation = hierarchyGeneration.incrementAndGet();
+
+        // Do not spend CPU building a hierarchy which has already been replaced by a newer request.
+        Future<?> previousTask = hierarchyTask;
+        if (previousTask != null) previousTask.cancel(true);
+
+        int statusBarOffset = 0;
+        if (mAssistantView != null) {
             WindowInsets insets = mAssistantView.getRootWindowInsets();
-            if (insets.getSystemWindowInsetTop() == 0) Utils.statusBarOffset = -mAssistantView.visibleDisplayFrame.top;
-            Utils.viewNodeRectMap.clear();
-            selectedViewNode = null;
-            viewPagerAdapter.clearSelectedViewNodePosition();
-            if (assistStructure == null) {
-                hierarchy.clear();
-            } else {
-                hierarchy = Utils.displayViewHierarchy(assistStructure);
+            if (insets != null && insets.getSystemWindowInsetTop() == 0) {
+                statusBarOffset = -mAssistantView.visibleDisplayFrame.top;
             }
-            viewPagerAdapter.setHierarchyTree(hierarchy);
-            if (preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false)) {
-                showLayoutBounds();
+        }
+        final int capturedStatusBarOffset = statusBarOffset;
+
+        selectedViewNode = null;
+        viewNodeWrapperStack.clear();
+        if (viewPagerAdapter != null) viewPagerAdapter.clearSelectedViewNodePosition();
+
+        hierarchyTask = hierarchyExecutor.submit(() -> {
+            final Utils.HierarchyResult result;
+            try {
+                result = structure == null
+                        ? Utils.HierarchyResult.empty()
+                        : Utils.displayViewHierarchy(structure, capturedStatusBarOffset);
+            } catch (CancellationException ignored) {
+                return;
             }
+
+            if (Thread.currentThread().isInterrupted()
+                    || generation != hierarchyGeneration.get()) {
+                return;
+            }
+
+            mainHandler.post(() -> {
+                // A slower, older assist request must never overwrite a newer hierarchy.
+                if (generation != hierarchyGeneration.get() || viewPagerAdapter == null) return;
+
+                hierarchyRoots = result.getRoots();
+                flatHierarchy = result.getFlatNodes();
+                viewPagerAdapter.setHierarchyTree(hierarchyRoots, flatHierarchy);
+
+                if (preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false)) {
+                    showLayoutBounds();
+                } else {
+                    LayoutBoundsDrawer.updateLayoutBounds(new ArrayList<>());
+                }
+            });
         });
+    }
+
+    @Override
+    public void onDestroy() {
+        hierarchyGeneration.incrementAndGet();
+        Future<?> task = hierarchyTask;
+        if (task != null) task.cancel(true);
+        hierarchyExecutor.shutdownNow();
+        mainHandler.removeCallbacksAndMessages(null);
+        selectedViewNode = null;
+        viewNodeWrapperStack.clear();
+        flatHierarchy = new ArrayList<>();
+        hierarchyRoots = new ArrayList<>();
+        DrawableLayoutHelper.clearCanvas();
+        super.onDestroy();
     }
 
     private void setUpAnimations() {
         slideUpAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_up);
         slideDownAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.slide_down);
         changeBoundTransition = new ChangeBounds();
-        autoTransition = new AutoTransition();
-        slideAnimation = new Slide();
     }
 
     @SuppressWarnings("ClickableViewAccessibility")
@@ -314,7 +392,10 @@ public class AssistSession extends VoiceInteractionSession {
 
     private void setUpClickListeners() {
         btnSettings.setOnClickListener(v -> {
-            TransitionManager.beginDelayedTransition((ViewGroup) settingsCard.getParent(), new Slide(Gravity.BOTTOM));
+            inflateSettingsIfNeeded();
+            if (settingsCard == null) return;
+            TransitionManager.beginDelayedTransition((ViewGroup) settingsCard.getParent(),
+                    new Slide(Gravity.BOTTOM));
             settingsCard.setVisibility(isSettingsShown ? View.GONE : View.VISIBLE);
             isSettingsShown = !isSettingsShown;
         });
@@ -322,7 +403,6 @@ public class AssistSession extends VoiceInteractionSession {
 
 
         btnExpandCollapse.setOnClickListener(v -> {
-            TransitionManager.beginDelayedTransition(settingsCard, autoTransition);
             if (isExpanded) {
                 collapseCardView();
                 btnExpandCollapse.setIconResource(R.drawable.rounded_keyboard_arrow_up_24);
@@ -359,29 +439,32 @@ public class AssistSession extends VoiceInteractionSession {
 
     @SuppressWarnings("ClickableViewAccessibility")
     private void setUpTouchListener() {
+        mAssistantView.setOnTouchListener((view, event) -> {
+            // Hit-testing the complete hierarchy is O(number of views). Do it once per tap,
+            // never for every ACTION_MOVE event delivered during a gesture.
+            if (event.getAction() != MotionEvent.ACTION_DOWN) return false;
 
-        mAssistantView.setOnTouchListener(new View.OnTouchListener() {
-            @SuppressLint("ClickableViewAccessibility")
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (hierarchy.isEmpty()) {
+            if (flatHierarchy.isEmpty()) {
+                if (viewPagerAdapter != null) {
                     viewPagerAdapter.showFunctionalityUnavailableIndicator();
-                    return false;
-                }
-                if (oldX != (int) event.getX() && oldY != (int) event.getY()) {
-                    viewNodeWrapperStack.clear();
-                    ViewNodeWrapper viewNodeWrapper = getTreeNodeByCoordinates((int) event.getX(), (int) event.getY());
-                    if (viewNodeWrapper == null) return false;
-                    TreeNode treeNode = hierarchy.get(viewNodeWrapper.getPositionInHierarchy());
-                    viewPagerAdapter.handleHierarchyNavigation(viewNodeWrapper.getPositionInHierarchy(), viewNodeWrapper.getViewNode().getChildCount());
-                    oldX = (int) event.getX();
-                    oldY = (int) event.getY();
-                    if (treeNode == null) return false;
-                    viewPagerAdapter.showInHierarchyTab(viewNodeWrapper);
-                    viewPagerAdapter.setComponent(viewNodeWrapper);
                 }
                 return false;
             }
+
+            ViewNodeWrapper wrapper = getTreeNodeByCoordinates(
+                    (int) event.getX(), (int) event.getY());
+            if (wrapper == null) return false;
+
+            int position = wrapper.getPositionInHierarchy();
+            if (position < 0 || position >= flatHierarchy.size()) return false;
+            TreeNode treeNode = flatHierarchy.get(position);
+            if (treeNode == null || viewPagerAdapter == null) return false;
+
+            viewPagerAdapter.handleHierarchyNavigation(position,
+                    wrapper.getViewNode().getChildCount());
+            viewPagerAdapter.showInHierarchyTab(wrapper);
+            viewPagerAdapter.setComponent(wrapper);
+            return false;
         });
 
         mCardView.setOnTouchListener(new View.OnTouchListener() {
@@ -398,13 +481,16 @@ public class AssistSession extends VoiceInteractionSession {
                     case MotionEvent.ACTION_MOVE:
                         float newX = event.getRawX() + dX;
                         float newY = event.getRawY() + dY;
-
-                        // Clamp X and Y to screen bounds
-                        newX = Math.max(0, Math.min(newX, draggableContainer.getWidth() - view.getWidth()));
-                        newY = Math.max(0, Math.min(newY, draggableContainer.getHeight() - view.getHeight()));
-
+                        newX = Math.max(0, Math.min(newX,
+                                draggableContainer.getWidth() - view.getWidth()));
+                        newY = Math.max(0, Math.min(newY,
+                                draggableContainer.getHeight() - view.getHeight()));
                         view.setX(newX);
                         view.setY(newY);
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
                         return true;
 
                     default:
@@ -414,64 +500,60 @@ public class AssistSession extends VoiceInteractionSession {
         });
     }
 
+    /**
+     * Returns the top-most selectable node using the same reverse depth-first precedence as
+     * the original insertion-ordered map, without allocating a candidate list or scanning a map.
+     */
     public ViewNodeWrapper getTreeNodeByCoordinates(int x, int y) {
-        List<ViewNodeWrapper> candidates = new ArrayList<>();
+        int viewType = preferences.getInt("SETTINGS_VIEW_TYPE", View.VISIBLE);
+        ViewNodeWrapper topMostParentNode = null;
 
-        // Collect all candidate nodes containing the point
-        for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
-            ViewNodeWrapper node = entry.getKey();
-            Rect rect = entry.getValue();
+        for (int i = flatHierarchy.size() - 1; i >= 0; i--) {
+            Object value = flatHierarchy.get(i).getValue();
+            if (!(value instanceof ViewNodeWrapper)) continue;
 
-            if (!rect.contains(x, y) || skipInvisibleViews(node)) {
+            ViewNodeWrapper current = (ViewNodeWrapper) value;
+            Rect bounds = current.getBounds();
+            if (bounds == null || !bounds.contains(x, y)
+                    || skipInvisibleViews(current, viewType)) {
                 continue;
             }
 
-            candidates.add(node);
-        }
-
-        ViewNodeWrapper topMostParentNode = null;
-
-        // Traverse candidates from deepest (last) to shallowest
-        for (int i = candidates.size() - 1; i >= 0; i--) {
-            ViewNodeWrapper current = candidates.get(i);
-
             if (current.getViewNode().getChildCount() == 0 && !isScrimView(current)) {
-                return current; // return leaf immediately
+                return current;
             }
-
             if (topMostParentNode == null && current.getViewNode().getChildCount() > 0) {
                 topMostParentNode = current;
             }
         }
-
         return topMostParentNode;
     }
 
-
-    private boolean skipInvisibleViews(ViewNodeWrapper node) {
-        return !node.isVisible() && preferences.getInt("SETTINGS_VIEW_TYPE", View.VISIBLE) == View.VISIBLE;
+    private boolean skipInvisibleViews(ViewNodeWrapper node, int viewType) {
+        return !node.isVisible() && viewType == View.VISIBLE;
     }
 
     private boolean isScrimView(ViewNodeWrapper viewNodeWrapper) {
-        ViewNodeWrapper root = (ViewNodeWrapper) hierarchy.get(0).getValue();
-        boolean scrimview = Utils.getLastSegmentOfClass(viewNodeWrapper.getViewNode().getClassName()).equalsIgnoreCase("View") &&
-                viewNodeWrapper.getViewNode().getWidth() == root.getViewNode().getWidth();
-        boolean isViewGroup = VIEWGROUP_CLASSES.contains(viewNodeWrapper.getViewNode().getClassName());
+        if (flatHierarchy.isEmpty()) return false;
+        ViewNodeWrapper root = (ViewNodeWrapper) flatHierarchy.get(0).getValue();
+        boolean scrimview = "View".equalsIgnoreCase(viewNodeWrapper.getSimpleClassName())
+                && viewNodeWrapper.getViewNode().getWidth() == root.getViewNode().getWidth();
+        boolean isViewGroup = VIEWGROUP_CLASSES.contains(
+                viewNodeWrapper.getViewNode().getClassName());
         return scrimview || isViewGroup;
     }
 
-
-    private void showLayoutBounds(){
-            List<Rect> layoutBounds = new ArrayList<>();
-            int viewType = preferences.getInt("SETTINGS_VIEW_TYPE",View.VISIBLE);
-            for (Map.Entry<ViewNodeWrapper, Rect> entry : Utils.viewNodeRectMap.entrySet()) {
-                if (viewType < 0 || entry.getKey().showViewNode(viewType)) {
-                    Rect rect = entry.getValue();
-                    layoutBounds.add(rect);
-                }
+    private void showLayoutBounds() {
+        List<Rect> layoutBounds = new ArrayList<>();
+        int viewType = preferences.getInt("SETTINGS_VIEW_TYPE", View.VISIBLE);
+        for (TreeNode treeNode : flatHierarchy) {
+            ViewNodeWrapper wrapper = (ViewNodeWrapper) treeNode.getValue();
+            if (viewType < 0 || wrapper.showViewNode(viewType)) {
+                layoutBounds.add(wrapper.getBounds());
             }
-            LayoutBoundsDrawer.updateLayoutBounds(layoutBounds);
-            mAssistantView.notifyPreferenceChange();
+        }
+        LayoutBoundsDrawer.updateLayoutBounds(layoutBounds);
+        if (mAssistantView != null) mAssistantView.notifyPreferenceChange();
     }
 
     public void drawRect(Rect rect) {
