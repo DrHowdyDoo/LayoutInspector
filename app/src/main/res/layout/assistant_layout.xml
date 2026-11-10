@@ -23,7 +23,7 @@
             android:layout_marginHorizontal="12dp"
             android:focusable="true"
             android:layout_marginBottom="16dp"
-            app:cardBackgroundColor="?colorSurfaceContainerLowest"
+            app:cardBackgroundColor="?attr/colorSurfaceContainerLow"
             app:cardCornerRadius="28dp"
             android:layout_gravity="center_horizontal|bottom">
 
@@ -72,11 +72,12 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:tabGravity="center"
                     app:tabIndicator="@drawable/tab_indicator"
-                    app:tabIndicatorColor="?colorSurfaceContainer"
+                    app:tabIndicatorColor="?attr/colorSecondaryContainer"
+                    app:tabSelectedTextColor="?attr/colorOnSecondaryContainer"
+                    app:tabTextColor="?attr/colorOnSurfaceVariant"
                     app:tabIndicatorFullWidth="true"
                     app:tabIndicatorGravity="center"
-                    app:tabIndicatorHeight="42dp"
-                    app:tabSelectedTextColor="?colorOnBackground">
+                    app:tabIndicatorHeight="42dp">
 
                     <com.google.android.material.tabs.TabItem
                         android:layout_width="wrap_content"

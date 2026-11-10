@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle"
-    android:tint="?colorSurface">
+    android:tint="?attr/colorSurfaceContainer">
     <corners android:bottomLeftRadius="@dimen/bg_card_content_radius"
         android:bottomRightRadius="@dimen/bg_card_content_radius"
         android:topLeftRadius="@dimen/bg_card_content_radius"

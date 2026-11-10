@@ -13,11 +13,11 @@
         android:layout_height="match_parent"/>
 
     <com.google.android.material.card.MaterialCardView
-        style="?attr/materialCardViewFilledStyle"
+        style="?attr/materialCardViewOutlinedStyle"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardBackgroundColor="?colorSurface"
+        app:cardBackgroundColor="?attr/colorSurfaceContainer"
         android:padding="8dp"
         app:shapeAppearanceOverlay="@style/ShapeAppearance.App.Corner.Medium"
         tools:ignore="HardCodedText">
@@ -86,7 +86,7 @@
                                 android:textStyle="bold"
                                 android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
                                 android:drawableEnd="@drawable/rounded_arrow_drop_down_24"
-                                android:drawableTint="?colorOnBackground" />
+                                android:drawableTint="?attr/colorOnSurfaceVariant" />
 
                         </LinearLayout>
 

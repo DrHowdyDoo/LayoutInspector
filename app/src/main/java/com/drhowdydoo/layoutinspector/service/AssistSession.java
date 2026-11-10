@@ -22,7 +22,7 @@ import android.view.WindowInsets;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
-import android.widget.PopupMenu;
+import androidx.appcompat.widget.PopupMenu;
 import android.widget.TextView;
 import android.view.ViewStub;
 
@@ -46,6 +46,7 @@ import com.drhowdydoo.layoutinspector.util.LayoutBoundsDrawer;
 import com.drhowdydoo.layoutinspector.util.Utils;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.color.DynamicColors;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.slider.Slider;
 import com.google.android.material.tabs.TabLayout;
@@ -153,8 +154,14 @@ public class AssistSession extends VoiceInteractionSession {
     public View onCreateContentView() {
         Log.d("AssistantDebug", "AssistSession: onCreateContentView()");
 
-        LayoutInflater inflater = getLayoutInflater();
-        mAssistantView = (DrawableFrameLayout) inflater.inflate(R.layout.assistant_layout, null);
+        Context dynamicContext =
+                DynamicColors.wrapContextIfAvailable(getContext());
+
+        LayoutInflater inflater = LayoutInflater.from(dynamicContext);
+
+        mAssistantView = (DrawableFrameLayout) inflater.inflate(
+                R.layout.assistant_layout, null
+        );
 
         mCardView = mAssistantView.findViewById(R.id.card_bg);
         viewPager = mAssistantView.findViewById(R.id.viewPager);
