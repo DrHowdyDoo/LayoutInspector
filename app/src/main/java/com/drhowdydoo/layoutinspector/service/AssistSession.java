@@ -22,7 +22,6 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
@@ -319,37 +318,68 @@ public class AssistSession extends VoiceInteractionSession {
 
     @Override
     public void onHandleAssist(@NonNull AssistState state) {
+        // Always let the framework implementation process the callback first.
         super.onHandleAssist(state);
 
+        // AssistState callbacks can describe more than one activity. Only inspect the activity
+        // that was actually focused when the assistant request was captured.
+        if (!state.isFocused()) {
+            Log.d(TAG, "Ignoring non-focused assist activity. index="
+                    + state.getIndex() + ", count=" + state.getCount());
+            return;
+        }
+
         final AssistStructure structure = state.getAssistStructure();
+        final boolean hasAssistNodeData = containsAssistRootNode(structure);
         final int generation = hierarchyGeneration.incrementAndGet();
+
+        // Capture the overlay's screen origin on the UI thread. WindowNode positions are
+        // screen-relative, while DrawableFrameLayout draws in its own local canvas coordinates.
+        final int[] overlayLocation = new int[]{0, 0};
+        int expectedDisplayId = -1;
+        if (mAssistantView != null) {
+            mAssistantView.getLocationOnScreen(overlayLocation);
+            if (mAssistantView.getDisplay() != null) {
+                expectedDisplayId = mAssistantView.getDisplay().getDisplayId();
+            }
+        }
+        final int overlayScreenX = overlayLocation[0];
+        final int overlayScreenY = overlayLocation[1];
+        final int capturedDisplayId = expectedDisplayId;
+        final int capturedViewType = preferences.getInt("SETTINGS_VIEW_TYPE", View.VISIBLE);
+
+        selectedViewNode = null;
+        viewNodeWrapperStack.clear();
+        if (viewPagerAdapter != null) viewPagerAdapter.clearSelectedViewNodePosition();
+        hierarchyRoots = new ArrayList<>();
+        flatHierarchy = new ArrayList<>();
+        if (viewPagerAdapter != null) {
+            viewPagerAdapter.setHierarchyTree(hierarchyRoots, flatHierarchy, hasAssistNodeData);
+        }
+
+        // Never leave the previous screen's rectangles or tree visible while the new snapshot is built.
+        DrawableLayoutHelper.clearCanvas();
+        if (mAssistantView != null) mAssistantView.invalidate();
 
         // Do not spend CPU building a hierarchy which has already been replaced by a newer request.
         Future<?> previousTask = hierarchyTask;
         if (previousTask != null) previousTask.cancel(true);
 
-        int statusBarOffset = 0;
-        if (mAssistantView != null) {
-            WindowInsets insets = mAssistantView.getRootWindowInsets();
-            if (insets != null && insets.getSystemWindowInsetTop() == 0) {
-                statusBarOffset = -mAssistantView.visibleDisplayFrame.top;
-            }
-        }
-        final int capturedStatusBarOffset = statusBarOffset;
-
-        selectedViewNode = null;
-        viewNodeWrapperStack.clear();
-        if (viewPagerAdapter != null) viewPagerAdapter.clearSelectedViewNodePosition();
-
         hierarchyTask = hierarchyExecutor.submit(() -> {
-            final Utils.HierarchyResult result;
+            Utils.HierarchyResult builtResult;
             try {
-                result = structure == null
+                builtResult = structure == null
                         ? Utils.HierarchyResult.empty()
-                        : Utils.displayViewHierarchy(structure, capturedStatusBarOffset);
+                        : Utils.displayViewHierarchy(structure,
+                                overlayScreenX, overlayScreenY, capturedDisplayId,
+                                capturedViewType);
             } catch (CancellationException ignored) {
                 return;
+            } catch (RuntimeException error) {
+                Log.e(TAG, "Unable to build assist hierarchy", error);
+                builtResult = Utils.HierarchyResult.empty();
             }
+            final Utils.HierarchyResult result = builtResult;
 
             if (Thread.currentThread().isInterrupted()
                     || generation != hierarchyGeneration.get()) {
@@ -362,15 +392,34 @@ public class AssistSession extends VoiceInteractionSession {
 
                 hierarchyRoots = result.getRoots();
                 flatHierarchy = result.getFlatNodes();
-                viewPagerAdapter.setHierarchyTree(hierarchyRoots, flatHierarchy);
+                viewPagerAdapter.setHierarchyTree(hierarchyRoots, flatHierarchy, hasAssistNodeData);
 
-                if (preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false)) {
+                if (preferences.getBoolean("SETTINGS_SHOW_LAYOUT_BOUNDS", false)
+                        && !flatHierarchy.isEmpty()) {
                     showLayoutBounds();
                 } else {
                     LayoutBoundsDrawer.updateLayoutBounds(new ArrayList<>());
+                    if (mAssistantView != null) mAssistantView.invalidate();
                 }
             });
         });
+    }
+
+    /**
+     * Reports whether the framework supplied any AssistStructure root node, independent
+     * of whether Utils later finds a visible/selectable foreground node. This distinction
+     * prevents the empty-tree message from appearing on screens such as Google Discover,
+     * where the launcher tree exists but the currently displayed surface is not exposed.
+     */
+    private static boolean containsAssistRootNode(@Nullable AssistStructure structure) {
+        if (structure == null) return false;
+        for (int i = 0; i < structure.getWindowNodeCount(); i++) {
+            AssistStructure.WindowNode window = structure.getWindowNodeAt(i);
+            if (window != null && window.getRootViewNode() != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -526,7 +575,8 @@ public class AssistSession extends VoiceInteractionSession {
 
             ViewNodeWrapper current = (ViewNodeWrapper) value;
             Rect bounds = current.getBounds();
-            if (bounds == null || !bounds.contains(x, y)
+            if (bounds == null || bounds.isEmpty() || !bounds.contains(x, y)
+                    || current.isOccluded()
                     || skipInvisibleViews(current, viewType)) {
                 continue;
             }
@@ -542,7 +592,7 @@ public class AssistSession extends VoiceInteractionSession {
     }
 
     private boolean skipInvisibleViews(ViewNodeWrapper node, int viewType) {
-        return !node.isVisible() && viewType == View.VISIBLE;
+        return viewType >= 0 && !node.showViewNode(viewType);
     }
 
     private boolean isScrimView(ViewNodeWrapper viewNodeWrapper) {
@@ -560,8 +610,14 @@ public class AssistSession extends VoiceInteractionSession {
         int viewType = preferences.getInt("SETTINGS_VIEW_TYPE", View.VISIBLE);
         for (TreeNode treeNode : flatHierarchy) {
             ViewNodeWrapper wrapper = (ViewNodeWrapper) treeNode.getValue();
-            if (viewType < 0 || wrapper.showViewNode(viewType)) {
-                layoutBounds.add(wrapper.getBounds());
+            Rect bounds = wrapper.getVisibleBounds();
+            // The window root is only a coordinate container, not a useful component bound.
+            if (wrapper.getDepth() > 0
+                    && !wrapper.isOccluded()
+                    && bounds != null
+                    && !bounds.isEmpty()
+                    && (viewType < 0 || wrapper.showViewNode(viewType))) {
+                layoutBounds.add(new Rect(bounds));
             }
         }
         LayoutBoundsDrawer.updateLayoutBounds(layoutBounds);

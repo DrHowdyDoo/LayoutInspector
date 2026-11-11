@@ -5,25 +5,57 @@ import android.graphics.Rect;
 import android.view.View;
 
 /**
- * Data associated with one AssistStructure node.
- * Bounds are calculated once while the hierarchy is built and then treated as immutable.
+ * Immutable geometry snapshot for one AssistStructure.ViewNode.
+ *
+ * bounds contains the transformed, unclipped screen rectangle. visibleBounds contains that
+ * rectangle clipped to the window and all ancestor bounds. Drawing and hit testing must use
+ * visibleBounds so content outside a scroll viewport or behind a clipped parent is not selected.
  */
 public class ViewNodeWrapper {
 
     private AssistStructure.ViewNode viewNode;
     private boolean visibility;
     private final Rect bounds;
+    private final Rect visibleBounds;
+    private final Rect parentBounds;
+    private boolean occluded;
     private int depth;
     private int levelInParent;
     private int positionInHierarchy;
     private String simpleClassName;
-
-    // Arrow coordinates are calculated lazily, only when the user selects this node.
-    private final AssistStructure.ViewNode parentViewNode;
-    private final int parentLeft;
-    private final int parentTop;
     private ArrowSet arrowSet;
 
+    public ViewNodeWrapper(AssistStructure.ViewNode viewNode,
+                           boolean visibility,
+                           Rect bounds,
+                           Rect visibleBounds,
+                           Rect parentBounds,
+                           int depth,
+                           int levelInParent,
+                           int positionInHierarchy) {
+        this.viewNode = viewNode;
+        this.visibility = visibility;
+        this.bounds = bounds == null ? new Rect() : new Rect(bounds);
+        this.visibleBounds = visibleBounds == null ? new Rect() : new Rect(visibleBounds);
+        this.parentBounds = parentBounds == null ? new Rect() : new Rect(parentBounds);
+        this.depth = depth;
+        this.levelInParent = levelInParent;
+        this.positionInHierarchy = positionInHierarchy;
+        this.simpleClassName = getLastSegment(viewNode != null ? viewNode.getClassName() : null);
+    }
+
+    /** Compatibility constructor retained for callers outside this source set. */
+    public ViewNodeWrapper(AssistStructure.ViewNode viewNode, boolean visibility) {
+        this(viewNode, visibility, new Rect(), new Rect(), new Rect(), 0, 0, 0);
+    }
+
+    /** Compatibility constructor retained for callers outside this source set. */
+    public ViewNodeWrapper(AssistStructure.ViewNode viewNode, boolean visibility, ArrowSet arrowSet) {
+        this(viewNode, visibility);
+        this.arrowSet = arrowSet;
+    }
+
+    /** Compatibility constructor for the previous hierarchy builder. */
     public ViewNodeWrapper(AssistStructure.ViewNode viewNode,
                            boolean visibility,
                            Rect bounds,
@@ -33,27 +65,8 @@ public class ViewNodeWrapper {
                            AssistStructure.ViewNode parentViewNode,
                            int parentLeft,
                            int parentTop) {
-        this.viewNode = viewNode;
-        this.visibility = visibility;
-        this.bounds = bounds;
-        this.depth = depth;
-        this.levelInParent = levelInParent;
-        this.positionInHierarchy = positionInHierarchy;
-        this.parentViewNode = parentViewNode;
-        this.parentLeft = parentLeft;
-        this.parentTop = parentTop;
-        this.simpleClassName = getLastSegment(viewNode != null ? viewNode.getClassName() : null);
-    }
-
-    /** Compatibility constructor retained for callers outside this source set. */
-    public ViewNodeWrapper(AssistStructure.ViewNode viewNode, boolean visibility) {
-        this(viewNode, visibility, new Rect(), 0, 0, 0, null, 0, 0);
-    }
-
-    /** Compatibility constructor retained for callers outside this source set. */
-    public ViewNodeWrapper(AssistStructure.ViewNode viewNode, boolean visibility, ArrowSet arrowSet) {
-        this(viewNode, visibility, new Rect(), 0, 0, 0, null, 0, 0);
-        this.arrowSet = arrowSet;
+        this(viewNode, visibility, bounds, bounds, new Rect(), depth,
+                levelInParent, positionInHierarchy);
     }
 
     public AssistStructure.ViewNode getViewNode() {
@@ -80,33 +93,49 @@ public class ViewNodeWrapper {
         return (visibilityFlag == View.VISIBLE) == visibility;
     }
 
-    /** Returns the precomputed absolute bounds for this node. Do not mutate the returned Rect. */
+    /** Returns the ancestor-clipped rectangle used for drawing and touch hit testing. */
     public Rect getBounds() {
+        return visibleBounds;
+    }
+
+    public Rect getVisibleBounds() {
+        return visibleBounds;
+    }
+
+    /** Returns the transformed rectangle before clipping by ancestors/window edges. */
+    public Rect getUnclippedBounds() {
         return bounds;
     }
 
+    public Rect getParentBounds() {
+        return parentBounds;
+    }
+
+    public boolean isOccluded() {
+        return occluded;
+    }
+
+    public void setOccluded(boolean occluded) {
+        this.occluded = occluded;
+    }
+
+    /**
+     * Distances are calculated from the transformed child bounds to its transformed parent
+     * bounds. This avoids mixing raw ViewNode coordinates with scrolled/transformed coordinates.
+     */
     public ArrowSet getArrowSet() {
         if (arrowSet == null) {
-            if (parentViewNode == null) {
-                // Root nodes have no parent-relative distances, but the draw path expects a set.
+            if (parentBounds.isEmpty() || visibleBounds.isEmpty()) {
                 arrowSet = new ArrowSet();
             } else {
-                int left = bounds.left;
-                int top = bounds.top;
-                int right = bounds.right;
-                int bottom = bounds.bottom;
-                int centerX = (left + right) / 2;
-                int centerY = (top + bottom) / 2;
-                int parentScrollX = parentViewNode.getScrollX();
-                int parentScrollY = parentViewNode.getScrollY();
-
+                Rect child = visibleBounds;
+                int centerX = (child.left + child.right) / 2;
+                int centerY = (child.top + child.bottom) / 2;
                 arrowSet = new ArrowSet(
-                        new Arrow(left, centerY, parentLeft - parentScrollX, centerY),
-                        new Arrow(right, centerY,
-                                parentViewNode.getWidth() + parentLeft - parentScrollX, centerY),
-                        new Arrow(centerX, top, centerX, parentTop - parentScrollY),
-                        new Arrow(centerX, bottom, centerX,
-                                parentViewNode.getHeight() + parentTop - parentScrollY));
+                        new Arrow(child.left, centerY, parentBounds.left, centerY),
+                        new Arrow(child.right, centerY, parentBounds.right, centerY),
+                        new Arrow(centerX, child.top, centerX, parentBounds.top),
+                        new Arrow(centerX, child.bottom, centerX, parentBounds.bottom));
             }
         }
         return arrowSet;

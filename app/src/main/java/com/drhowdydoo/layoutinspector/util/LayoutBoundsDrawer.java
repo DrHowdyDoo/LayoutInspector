@@ -67,7 +67,17 @@ public class LayoutBoundsDrawer {
     }
 
     public static void updateLayoutBounds(List<Rect> newLayoutBounds) {
-        layoutBounds = newLayoutBounds;
+        // Assist snapshots are immutable after publication. Copy the rectangles as well as the
+        // list so callers cannot mutate the geometry while the overlay is drawing it.
+        List<Rect> copiedBounds = new ArrayList<>();
+        if (newLayoutBounds != null) {
+            for (Rect bounds : newLayoutBounds) {
+                if (bounds != null && !bounds.isEmpty()) {
+                    copiedBounds.add(new Rect(bounds));
+                }
+            }
+        }
+        layoutBounds = copiedBounds;
     }
 
     public static void drawRect(Rect newRect){

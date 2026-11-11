@@ -29,6 +29,7 @@ import com.drhowdydoo.layoutinspector.ui.DrawableManager;
 import com.drhowdydoo.layoutinspector.ui.HierarchyViewHolder;
 import com.drhowdydoo.layoutinspector.ui.TreeLayoutManager;
 import com.drhowdydoo.layoutinspector.util.Utils;
+import com.drhowdydoo.layoutinspector.util.DistanceArrowDrawer;
 import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
 import com.google.android.material.button.MaterialButton;
 
@@ -42,7 +43,6 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     private List<TreeNode> hierarchyRoots = new ArrayList<>();
     private List<TreeNode> flatHierarchy = new ArrayList<>();
     private boolean treeDataInitialized;
-    private TextView hierarchyEmptyView;
     private final java.util.Map<String, String> themeNameCache = new java.util.HashMap<>();
     private TreeViewAdapter treeViewAdapter;
     private ComponentTabViewholder componentTabViewholder;
@@ -52,6 +52,13 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     private int selectedNodePosition = -1;
     private RecyclerView hierarchyRecyclerView;
     private int measurementUnitType = 0;
+    private boolean hasSelectableComponents;
+    private boolean componentSelected;
+    private boolean isProtectedScreen;
+
+    private LinearLayout hierarchyEmptyView;
+    private TextView hierarchyEmptyTitle;
+    private TextView hierarchyEmptySubtitle;
 
     public ViewPagerAdapter(Context context, AssistSession assistSession) {
         this.context = context;
@@ -92,14 +99,17 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     private void bindHierarchyTabViewHolder(HierarchyTabViewHolder holder) {
         hierarchyRecyclerView = holder.recyclerView;
-        hierarchyEmptyView = holder.tvEmptyTree;
+        hierarchyEmptyView = holder.emptyComponentTree;
+        hierarchyEmptyTitle = holder.tvProtectedTitle;
+        hierarchyEmptySubtitle = holder.tvProtectedSubtitle;
 
         if (treeViewAdapter == null) {
             TreeViewHolderFactory factory = (v, layout) -> new HierarchyViewHolder(v);
             treeViewAdapter = new TreeViewAdapter(factory);
             treeViewAdapter.setTreeNodeClickListener((treeNode, view) -> {
                 ViewNodeWrapper wrapper = (ViewNodeWrapper) treeNode.getValue();
-                if (wrapper == null) return;
+                if (wrapper == null || wrapper.isOccluded()
+                        || wrapper.getVisibleBounds().isEmpty()) return;
 
                 updateSelectedTreeNode(treeNode, wrapper.getPositionInHierarchy());
                 setComponent(wrapper);
@@ -125,9 +135,92 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     private void updateHierarchyEmptyState() {
         if (hierarchyEmptyView == null || hierarchyRecyclerView == null) return;
-        boolean isEmpty = flatHierarchy.isEmpty();
-        hierarchyEmptyView.setVisibility(isEmpty ? VISIBLE : View.INVISIBLE);
-        hierarchyRecyclerView.setVisibility(isEmpty ? View.GONE : VISIBLE);
+
+        if (isProtectedScreen) {
+            // Same UI as Component tab: protected screen
+            hierarchyEmptyTitle.setText(R.string.protected_view);
+            hierarchyEmptyTitle.setCompoundDrawablesWithIntrinsicBounds(
+                    0, R.drawable.baseline_shield_24, 0, 0);
+
+            hierarchyEmptySubtitle.setText(R.string.protected_view_msg);
+
+            hierarchyEmptyView.setVisibility(VISIBLE);
+            hierarchyRecyclerView.setVisibility(View.GONE);
+
+        } else if (!hasSelectableComponents) {
+            // Same UI as Component tab: no inspectable nodes
+            hierarchyEmptyTitle.setText(R.string.no_inspectable_nodes_title);
+            hierarchyEmptyTitle.setCompoundDrawablesWithIntrinsicBounds(
+                    0, R.drawable.round_hide_source_24, 0, 0);
+
+            hierarchyEmptySubtitle.setText(
+                    R.string.no_inspectable_nodes_description);
+
+            hierarchyEmptyView.setVisibility(VISIBLE);
+            hierarchyRecyclerView.setVisibility(View.GONE);
+
+        } else {
+            // Normal hierarchy available
+            hierarchyEmptyView.setVisibility(View.GONE);
+            hierarchyRecyclerView.setVisibility(VISIBLE);
+        }
+    }
+
+    private void updateComponentEmptyState(
+            boolean isProtectedScreen,
+            boolean hasInspectableNodes) {
+
+        this.isProtectedScreen = isProtectedScreen;
+        this.hasSelectableComponents = hasInspectableNodes;
+
+        if (componentSelected) {
+            updateComponentPlaceholderState();
+            return;
+        }
+
+        if (isProtectedScreen) {
+            showProtectedScreenMessage();
+        } else if (!hasInspectableNodes) {
+            showNoInspectableNodesMessage();
+        } else {
+            hideEmptyStateMessage();
+        }
+    }
+    private void showProtectedScreenMessage() {
+        if (componentTabViewholder == null) return;
+
+        componentTabViewholder.tvProtectedTitle.setText(R.string.protected_view);
+        componentTabViewholder.tvProtectedTitle.setCompoundDrawablesWithIntrinsicBounds(
+                0, R.drawable.baseline_shield_24, 0, 0);
+
+        componentTabViewholder.tvProtectedSubtitle.setText(
+                R.string.protected_view_msg);
+
+        componentTabViewholder.emptyComponentTree.setVisibility(VISIBLE);
+        componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
+    }
+
+    private void showNoInspectableNodesMessage() {
+        if (componentTabViewholder == null) return;
+
+        componentTabViewholder.tvProtectedTitle.setText(
+                R.string.no_inspectable_nodes_title);
+
+        componentTabViewholder.tvProtectedTitle.setCompoundDrawablesWithIntrinsicBounds(
+                0, R.drawable.round_hide_source_24, 0, 0);
+
+        componentTabViewholder.tvProtectedSubtitle.setText(
+                R.string.no_inspectable_nodes_description);
+
+        componentTabViewholder.emptyComponentTree.setVisibility(VISIBLE);
+        componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
+    }
+
+    private void hideEmptyStateMessage() {
+        if (componentTabViewholder == null) return;
+
+        componentTabViewholder.emptyComponentTree.setVisibility(View.GONE);
+        updateComponentPlaceholderState();
     }
 
     private void updateSelectedTreeNode(TreeNode selectedNode, int positionInHierarchy) {
@@ -157,14 +250,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     }
 
     private void bindComponentTabViewHolder(ComponentTabViewholder holder) {
-        // Handle component tab view holder logic here
         componentTabViewholder = holder;
-        if (flatHierarchy.isEmpty()) {
-            componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
-        } else if (selectedNodePosition < 0) {
-            componentTabViewholder.tvSelectComponent.setVisibility(VISIBLE);
-        }
-        componentTabViewholder.tvEmptyComponentTree.setVisibility(flatHierarchy.isEmpty() ? VISIBLE : View.GONE);
+        updateComponentPlaceholderState();
 
         // ViewPager2 may create this page after a hierarchy selection was made from the
         // assistant overlay. Restore the already-selected component into the new holder.
@@ -216,6 +303,29 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         });
     }
 
+
+    private void updateComponentPlaceholderState() {
+        if (componentTabViewholder == null) return;
+
+        if (componentSelected) {
+            componentTabViewholder.containerComponentInfo.setVisibility(VISIBLE);
+            componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
+            componentTabViewholder.emptyComponentTree.setVisibility(View.GONE);
+            return;
+        }
+
+        componentTabViewholder.containerComponentInfo.setVisibility(View.GONE);
+
+        if (isProtectedScreen) {
+            showProtectedScreenMessage();
+        } else if (!hasSelectableComponents) {
+            showNoInspectableNodesMessage();
+        } else {
+            componentTabViewholder.emptyComponentTree.setVisibility(View.GONE);
+            componentTabViewholder.tvSelectComponent.setVisibility(VISIBLE);
+        }
+    }
+
     public void handleHierarchyNavigation(int currentPos, int childCount){
         if (componentTabViewholder == null) return;
         boolean hasParent = currentPos >= 0 && currentPos < flatHierarchy.size()
@@ -225,11 +335,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     }
 
     public void resetComponentView(){
+        componentSelected = false;
         if (componentTabViewholder == null) return;
-        componentTabViewholder.containerComponentInfo.setVisibility(View.INVISIBLE);
-        componentTabViewholder.tvSelectComponent.setVisibility(VISIBLE);
         componentTabViewholder.btnMoveLeft.setVisibility(View.INVISIBLE);
         componentTabViewholder.btnMoveRight.setVisibility(View.INVISIBLE);
+        updateComponentPlaceholderState();
     }
 
     public void smoothScrollToCenter(RecyclerView recyclerView, int position) {
@@ -280,7 +390,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
 
     public void showInHierarchyTab(ViewNodeWrapper viewNodeWrapper) {
-        if (viewNodeWrapper == null || flatHierarchy.isEmpty()) return;
+        if (viewNodeWrapper == null || viewNodeWrapper.isOccluded()
+                || viewNodeWrapper.getVisibleBounds().isEmpty() || flatHierarchy.isEmpty()) return;
         int index = viewNodeWrapper.getPositionInHierarchy();
         if (index < 0 || index >= flatHierarchy.size()) return;
 
@@ -323,16 +434,26 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         if (viewNodeWrapper == null || viewNodeWrapper.getViewNode() == null) {
             return;
         }
-        assistSession.drawRect(viewNodeWrapper.getBounds());
+        // Nodes retained in the tree may belong to a background sibling layer (for example,
+        // the home workspace while the all-apps drawer is open). Never draw/select those bounds.
+        if (viewNodeWrapper.isOccluded() || viewNodeWrapper.getVisibleBounds().isEmpty()) {
+            assistSession.drawRect(null);
+            DistanceArrowDrawer.clearCanvas();
+            AssistSession.selectedViewNode = null;
+            selectedNodePosition = -1;
+            componentSelected = false;
+            resetComponentView();
+            return;
+        }
+        assistSession.drawRect(viewNodeWrapper.getVisibleBounds());
         assistSession.drawArrow(viewNodeWrapper);
         AssistSession.selectedViewNode = viewNodeWrapper;
         selectedNodePosition = viewNodeWrapper.getPositionInHierarchy();
+        componentSelected = true;
         AssistStructure.ViewNode viewNode = viewNodeWrapper.getViewNode();
         if (componentTabViewholder == null) return;
 
-        componentTabViewholder.containerComponentInfo.setVisibility(VISIBLE);
-        componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
-        componentTabViewholder.tvEmptyComponentTree.setVisibility(View.GONE);
+        updateComponentPlaceholderState();
         componentTabViewholder.imgComponentIcon.setBackgroundResource(DrawableManager.getDrawableForView(viewNodeWrapper.getSimpleClassName()));
         componentTabViewholder.tvComponentName.setText(viewNodeWrapper.getSimpleClassName());
         String id = String.valueOf(viewNode.getIdEntry());
@@ -435,9 +556,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
     }
 
     public void showFunctionalityUnavailableIndicator() {
-        if (componentTabViewholder == null) return;
-        componentTabViewholder.tvSelectComponent.setVisibility(View.GONE);
-        componentTabViewholder.tvEmptyComponentTree.setVisibility(VISIBLE);
+        updateComponentPlaceholderState();
+        updateHierarchyEmptyState();
     }
 
     public void clearSelectedViewNodePosition() {
@@ -462,11 +582,15 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
     public class HierarchyTabViewHolder extends RecyclerView.ViewHolder {
         RecyclerView recyclerView;
-        TextView tvEmptyTree;
+        LinearLayout emptyComponentTree;
+        TextView tvProtectedTitle;
+        TextView tvProtectedSubtitle;
         public HierarchyTabViewHolder(@NonNull View itemView) {
             super(itemView);
             recyclerView = itemView.findViewById(R.id.recycler_view);
-            tvEmptyTree = itemView.findViewById(R.id.tvEmptyTree);
+            emptyComponentTree = itemView.findViewById(R.id.emptyComponentTree);
+            tvProtectedTitle = itemView.findViewById(R.id.tv_protected_title);
+            tvProtectedSubtitle = itemView.findViewById(R.id.tv_protected_subtitle);
         }
     }
 
@@ -474,9 +598,9 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         ImageView imgComponentIcon;
         TextView tvPackage,tvWidth, tvHeight, tvComponentId,
                 tvComponentName,tvTextSize,tvTextColor,tvTextStyle,
-                tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme,tvChildCount,tvEmptyComponentTree;
-        LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc,containerTheme;
-        TextView tvSelectComponent;
+                tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme,tvChildCount;
+        LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc,containerTheme, emptyComponentTree;
+        TextView tvSelectComponent,tvProtectedTitle,tvProtectedSubtitle;
         MaterialButton btnMoveLeft, btnMoveRight;
         public ComponentTabViewholder(@NonNull View itemView) {
             super(itemView);
@@ -503,22 +627,59 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             btnMoveLeft = itemView.findViewById(R.id.btnMoveLeft);
             btnMoveRight = itemView.findViewById(R.id.btnMoveRight);
             tvChildCount = itemView.findViewById(R.id.tvChildCount);
-            tvEmptyComponentTree = itemView.findViewById(R.id.tvEmptyComponentTree);
+            emptyComponentTree = itemView.findViewById(R.id.emptyComponentTree);
+            tvProtectedTitle = itemView.findViewById(R.id.tv_protected_title);
+            tvProtectedSubtitle = itemView.findViewById(R.id.tv_protected_subtitle);
         }
     }
 
-    public void setHierarchyTree(List<TreeNode> roots, List<TreeNode> allNodes) {
+    private boolean containsSelectableForegroundNode() {
+        for (TreeNode node : flatHierarchy) {
+            if (node == null || !(node.getValue() instanceof ViewNodeWrapper)) continue;
+            ViewNodeWrapper wrapper = (ViewNodeWrapper) node.getValue();
+            if (wrapper.getDepth() > 0
+                    && wrapper.isVisible()
+                    && !wrapper.isOccluded()
+                    && !wrapper.getVisibleBounds().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setHierarchyTree(
+            List<TreeNode> roots,
+            List<TreeNode> allNodes,
+            boolean hasAssistNodeData) {
+
         hierarchyRoots = roots != null ? roots : new ArrayList<>();
         flatHierarchy = allNodes != null ? allNodes : new ArrayList<>();
+
         selectedNodePosition = -1;
+        componentSelected = false;
         treeDataInitialized = false;
+
+        // A root node alone does not mean that the foreground screen contains
+        // anything the user can select. This also filters incidental launcher
+        // nodes when an app such as Google Discover is in the foreground.
+        hasSelectableComponents =
+                hasAssistNodeData && containsSelectableForegroundNode();
+
+        // AssistStructure does not expose a reliable "secure window" flag here.
+        // Preserve the existing fallback: no root data and no hierarchy is
+        // presented using the protected-view empty state.
+        isProtectedScreen = !hasAssistNodeData && flatHierarchy.isEmpty();
+
+        updateComponentEmptyState(isProtectedScreen, hasSelectableComponents);
 
         if (treeViewAdapter != null) {
             treeViewAdapter.setTreeNodes(hierarchyRoots);
             treeViewAdapter.collapseAll();
             treeDataInitialized = true;
         }
+
         updateHierarchyEmptyState();
+        updateComponentPlaceholderState();
     }
 
 }

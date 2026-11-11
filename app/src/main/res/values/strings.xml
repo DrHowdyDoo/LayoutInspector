@@ -11,4 +11,9 @@
     <string name="btn_open_assist_setting">Open Default Digital Assistant App Settings</string>
     <string name="gesture_instruction_info">Looks like you\'re all set 👍\n\nNow you can activate the layout inspector like google assistant.\nJust swipe up from a bottom corner to invoke Layout inspector if you are using gesture navigation otherwise you can press and hold Home button.</string>
     <string name="empty_treeview_msg">Looks like this activity has its curtains drawn, no peeking allowed! 🫣 </string>
+    <string name="protected_view_message"><![CDATA[<b>Protected View</b><br/><small>This app marks this screen as secure to protect sensitive information, so it cannot be inspected.</small>]]></string>
+    <string name="protected_view">Protected View</string>
+    <string name="protected_view_msg">This app has marked this screen as secure to protect sensitive data, so its content cannot be inspected.</string>
+    <string name="no_inspectable_nodes_title">Nothing to inspect here</string>
+    <string name="no_inspectable_nodes_description">This screen doesn\'t provide view information for inspection.</string>
 </resources>

@@ -11,6 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:visibility="visible"
         android:layout_marginBottom="12dp"
         android:text="Touch a component to start inspecting"
         android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
@@ -19,20 +20,44 @@
         android:drawableTop="@drawable/ic_touch_component"
         tools:ignore="UseCompatTextViewDrawableXml" />
 
-    <TextView
-        android:id="@+id/tvEmptyComponentTree"
+    <LinearLayout
+        android:id="@+id/emptyComponentTree"
         android:visibility="gone"
-        android:drawableTop="@drawable/round_curtains_closed_24"
-        android:drawableTint="?colorError"
-        tools:visibility="visible"
-        android:paddingHorizontal="24dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_gravity="center"
-        android:drawablePadding="8dp"
-        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
-        android:text="@string/empty_treeview_msg" />
+        android:orientation="vertical"
+        android:paddingHorizontal="24dp">
+
+        <!-- Top Icon + Bold Title -->
+        <TextView
+            android:id="@+id/tv_protected_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="12dp"
+            android:gravity="center"
+            android:text="@string/protected_view"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:drawableTint="?attr/colorOnSurfaceVariant"
+            android:drawableTop="@drawable/baseline_shield_24" />
+
+        <!-- Small Subtitle Message -->
+        <TextView
+            android:id="@+id/tv_protected_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:lineSpacingExtra="2dp"
+            android:maxWidth="280dp"
+            android:text="@string/protected_view_msg"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="14sp" />
+
+    </LinearLayout>
 
 
     <ScrollView
