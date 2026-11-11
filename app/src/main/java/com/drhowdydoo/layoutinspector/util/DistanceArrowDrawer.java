@@ -20,25 +20,25 @@ public class DistanceArrowDrawer {
     private static int mMeasurementUnit ;
 
 
-    public static void init(Context context, int paintColor, float strokeWidth){
+    public static void init(Context context, int selectedColor, float strokeWidth){
 
-        ArrowDrawer.init(context, paintColor, strokeWidth);
+        ArrowDrawer.init(context, selectedColor, strokeWidth);
         arrowSet = new ArrowSet();
 
         textPaint = new Paint();
-        textPaint.setColor(Color.WHITE);
+        textPaint.setColor(Color.parseColor("#062B35"));
         textPaint.setTextSize(Utils.spToPx(context, 14));
         textPaint.setTextAlign(Paint.Align.CENTER);
 
         textBoxPaint = new Paint();
         textBoxPaint.setStyle(Paint.Style.FILL);
         textBoxPaint.setAntiAlias(true);
-        textBoxPaint.setColor(paintColor);
+        textBoxPaint.setColor(selectedColor);
     }
 
-    public static void notifyPaintChange(int color, float width){
-        ArrowDrawer.notifyPaintChange(color, width);
-        textBoxPaint.setColor(color);
+    public static void notifyPaintChange(int selectedColor, float width){
+        ArrowDrawer.notifyPaintChange(selectedColor, width);
+        textBoxPaint.setColor(selectedColor);
     }
 
     public static void onDraw(Canvas canvas, Context context) {

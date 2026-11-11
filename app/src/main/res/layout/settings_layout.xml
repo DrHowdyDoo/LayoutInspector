@@ -174,7 +174,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
-                        android:text="Layout bounds width"/>
+                        android:text="Layout bounds thickness"/>
 
                     <com.google.android.material.slider.Slider
                         android:id="@+id/widthSlider"

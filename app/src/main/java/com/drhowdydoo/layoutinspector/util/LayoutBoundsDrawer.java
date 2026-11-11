@@ -17,13 +17,13 @@ public class LayoutBoundsDrawer {
     private static List<Rect> layoutBounds = new ArrayList<>();
     private static PorterDuffColorFilter colorFilter;
 
-    public static void init(Context context, int strokeColor, float strokeWidth) {
+    public static void init(Context context, int strokeColor, int selectedColor, float strokeWidth) {
 
-        colorFilter = new PorterDuffColorFilter(strokeColor, PorterDuff.Mode.SRC_IN);
+        colorFilter = new PorterDuffColorFilter(selectedColor, PorterDuff.Mode.SRC_IN);
 
         singleBoundPaint = new Paint();
         singleBoundPaint.setAntiAlias(true);
-        singleBoundPaint.setColor(strokeColor);
+        singleBoundPaint.setColor(selectedColor);
         singleBoundPaint.setStyle(Paint.Style.STROKE);
         singleBoundPaint.setStrokeWidth(strokeWidth);
 
@@ -40,12 +40,12 @@ public class LayoutBoundsDrawer {
         fillPaint.setAlpha(60);
     }
 
-    public static void notifyPaintChange(int color, float width){
-        singleBoundPaint.setColor(color);
+    public static void notifyPaintChange(int strokeColor, int selectedColor, float width){
+        singleBoundPaint.setColor(selectedColor);
         singleBoundPaint.setStrokeWidth(width);
-        multiBoundPaint.setColor(color);
+        multiBoundPaint.setColor(strokeColor);
         multiBoundPaint.setStrokeWidth(width);
-        colorFilter = new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN);
+        colorFilter = new PorterDuffColorFilter(selectedColor, PorterDuff.Mode.SRC_IN);
         fillPaint.setColorFilter(colorFilter);
     }
 
