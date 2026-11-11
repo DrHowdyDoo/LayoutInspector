@@ -6,11 +6,17 @@ import android.animation.ValueAnimator;
 import android.app.WallpaperColors;
 import android.app.WallpaperManager;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.RadialGradient;
+import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.Shader;
 import android.os.Build;
 import android.util.AttributeSet;
@@ -21,67 +27,74 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+/**
+ * Continuous liquid-ribbon border wave animation using vibrant dynamic wallpaper colors.
+ *
+ * Instead of discrete circles/balls, this view constructs continuous cubic-spline wave Paths
+ * locked to a 5-segment screen-perimeter rail (bottom bezel -> bottom corners -> left/right
+ * vertical edges -> top corners -> top-center) and renders three multi-harmonic blurred liquid
+ * layers (Ambient Aura, Primary Wave Body, and Specular Bezel Core) into a fast downsampled
+ * fluid buffer.
+ */
 public class AuraDiffusionView extends View {
 
-    // 4.6-second smooth upward flow with zero startup lag
-    private static final long ANIMATION_DURATION_MS = 4600L;
+    // Smooth 4.4-second bottom-to-top fluid border wave duration
+    private static final long ANIMATION_DURATION_MS = 3200L;
 
-    // Master translucency control (0.25f = whisper-faint, 0.38f = subtle wash, 0.55f = richer tint)
-    private static final float MASTER_OPACITY = 0.38f;
+    // Master border intensity (0.65f = soft glow, 0.88f = vibrant liquid border, 1.0f = max)
+    private static final float MASTER_OPACITY = 0.88f;
 
-    private static final int PLUME_COUNT = 7;
+    // Downsample factor for the offscreen Gaussian fluid buffer (1/8th scale = 64x fewer pixels,
+    // enabling true wide-radius Gaussian blur at 120fps with zero discrete "balls")
+    private static final int BUFFER_SCALE = 8;
 
-    private final Paint[] plumePaints = new Paint[PLUME_COUNT];
-    private final Matrix[] plumeMatrices = new Matrix[PLUME_COUNT];
-    private final RadialGradient[] plumeShaders = new RadialGradient[PLUME_COUNT];
-    private final FluidPlume[] plumes = new FluidPlume[PLUME_COUNT];
+    // Number of spline sample points along each continuous liquid wave ribbon
+    private static final int WAVE_SAMPLES = 40;
+
+    private static final int COLOR_COUNT = 4;
+
+    private final Paint bitmapPresentPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG | Paint.DITHER_FLAG);
+    private final Paint ambientLayerPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
+    private final Paint primaryWavePaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
+    private final Paint specularCorePaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
+
+    private final Path leftAmbientPath = new Path();
+    private final Path rightAmbientPath = new Path();
+    private final Path leftPrimaryPath = new Path();
+    private final Path rightPrimaryPath = new Path();
+    private final Path leftCorePath = new Path();
+    private final Path rightCorePath = new Path();
+
+    private final float[] outerX = new float[WAVE_SAMPLES];
+    private final float[] outerY = new float[WAVE_SAMPLES];
+    private final float[] innerX = new float[WAVE_SAMPLES];
+    private final float[] innerY = new float[WAVE_SAMPLES];
+    private final float[] railPoint = new float[4]; // [bezelX, bezelY, inwardNormalX, inwardNormalY]
+
+    private final Matrix gradientMatrix = new Matrix();
+    private final Rect srcRect = new Rect();
+    private final Rect dstRect = new Rect();
+
+    private Bitmap fluidBitmap;
+    private Canvas fluidCanvas;
+    private LinearGradient vibrantFlowShader;
+    private LinearGradient coreHighlightShader;
 
     private ValueAnimator auraAnimator;
     private float progress = 0f;
     private int viewWidth = 0;
     private int viewHeight = 0;
-    private boolean useWallpaperColors = true;
+    private int bufWidth = 0;
+    private int bufHeight = 0;
+    private boolean useDynamicColors = true;
 
-    private final int[] basePalette = new int[]{
-            0x64D8E8, // Soft Mist Cyan
-            0x7E78D2, // Muted Lavender Indigo
-            0x6E85E8, // Airy Periwinkle
-            0x5CC8D8, // Pale Aqua Veil
-            0xB86BD6, // Soft Orchid Mist
-            0x8E74E0, // Muted Wisteria
-            0x7ADCE6  // Pale Sky Tint
+    // Fallback vibrant palette if dynamic wallpaper colors are unavailable
+    private final int[] vibrantPalette = new int[]{
+            0x00E5FF, // Vibrant Cyan
+            0x2979FF, // Electric Blue
+            0x7C4DFF, // Vibrant Violet
+            0x00F5D4  // Luminous Aqua Mint
     };
-
-    private static class FluidPlume {
-        final float startTime;
-        final float endTime;
-        final float baseXRatio;
-        final float swayAmpRatio;
-        final float swayFreq;
-        final float swayPhase;
-        final float radiusXRatio;
-        final float radiusYRatio;
-        final float startAngle;
-        final float endAngle;
-        final float weight;
-
-        FluidPlume(float startTime, float endTime,
-                   float baseXRatio, float swayAmpRatio, float swayFreq, float swayPhase,
-                   float radiusXRatio, float radiusYRatio,
-                   float startAngle, float endAngle, float weight) {
-            this.startTime = startTime;
-            this.endTime = endTime;
-            this.baseXRatio = baseXRatio;
-            this.swayAmpRatio = swayAmpRatio;
-            this.swayFreq = swayFreq;
-            this.swayPhase = swayPhase;
-            this.radiusXRatio = radiusXRatio;
-            this.radiusYRatio = radiusYRatio;
-            this.startAngle = startAngle;
-            this.endAngle = endAngle;
-            this.weight = weight;
-        }
-    }
 
     public AuraDiffusionView(Context context) {
         super(context);
@@ -102,145 +115,133 @@ public class AuraDiffusionView extends View {
         setClickable(false);
         setFocusable(false);
 
-        for (int i = 0; i < PLUME_COUNT; i++) {
-            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
-            plumePaints[i] = paint;
-            plumeMatrices[i] = new Matrix();
-        }
+        ambientLayerPaint.setStyle(Paint.Style.FILL);
+        primaryWavePaint.setStyle(Paint.Style.FILL);
+        specularCorePaint.setStyle(Paint.Style.FILL);
+        // Screen blending on the inner core creates a luminous liquid-glass rim right on the bezel
+        specularCorePaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SCREEN));
 
-        // Tighter start stagger (0.00f to 0.06f) so plumes begin rising immediately on frame 1
-        plumes[0] = new FluidPlume(
-                0.00f, 0.94f,
-                0.30f, 0.20f, 1.1f, 0.0f,
-                1.20f, 0.75f, -16f, 20f, 0.22f);
-
-        plumes[1] = new FluidPlume(
-                0.00f, 0.96f,
-                0.70f, -0.20f, 1.0f, 0.9f,
-                1.20f, 0.78f, 18f, -16f, 0.22f);
-
-        plumes[2] = new FluidPlume(
-                0.00f, 0.95f,
-                0.50f, 0.14f, 0.85f, 1.7f,
-                1.45f, 0.85f, -8f, 12f, 0.20f);
-
-        plumes[3] = new FluidPlume(
-                0.02f, 0.98f,
-                0.15f, 0.24f, 0.95f, 0.5f,
-                1.15f, 0.80f, 14f, -22f, 0.18f);
-
-        plumes[4] = new FluidPlume(
-                0.03f, 1.00f,
-                0.85f, -0.24f, 0.95f, 2.2f,
-                1.15f, 0.80f, -14f, 22f, 0.18f);
-
-        plumes[5] = new FluidPlume(
-                0.05f, 1.00f,
-                0.38f, -0.18f, 1.2f, 2.9f,
-                1.30f, 0.88f, 22f, -10f, 0.17f);
-
-        plumes[6] = new FluidPlume(
-                0.06f, 1.00f,
-                0.62f, 0.18f, 1.15f, 3.6f,
-                1.30f, 0.90f, -20f, 14f, 0.16f);
-
-        updateWallpaperColors();
+        updateVibrantDynamicColors();
     }
 
-    public void updateWallpaperColors() {
-        if (!useWallpaperColors) return;
+    /**
+     * Extracts dynamic wallpaper colors (Material You on Android 12+, WallpaperColors on 8.1+)
+     * and boosts their saturation and brightness into a vibrant palette.
+     */
+    public void updateVibrantDynamicColors() {
+        if (!useDynamicColors) return;
         Context context = getContext();
         if (context == null) return;
 
-        boolean changed = false;
+        Integer primaryColor = null;
+        Integer secondaryColor = null;
+        Integer tertiaryColor = null;
 
+        // 1. Android 12+ (API 31+): Material You dynamic tonal values
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             try {
-                int[] dynamicColors = new int[]{
-                        ContextCompat.getColor(context, android.R.color.system_accent1_200),
-                        ContextCompat.getColor(context, android.R.color.system_accent2_200),
-                        ContextCompat.getColor(context, android.R.color.system_accent3_200),
-                        ContextCompat.getColor(context, android.R.color.system_accent1_300),
-                        ContextCompat.getColor(context, android.R.color.system_accent3_300),
-                        ContextCompat.getColor(context, android.R.color.system_accent2_300),
-                        ContextCompat.getColor(context, android.R.color.system_accent1_100)
-                };
-                for (int i = 0; i < PLUME_COUNT; i++) {
-                    int softened = softenForAura(dynamicColors[i], i * 4f);
-                    if (basePalette[i] != softened) {
-                        basePalette[i] = softened;
-                        changed = true;
-                    }
-                }
+                primaryColor = ContextCompat.getColor(context, android.R.color.system_accent1_400);
+                secondaryColor = ContextCompat.getColor(context, android.R.color.system_accent2_400);
+                tertiaryColor = ContextCompat.getColor(context, android.R.color.system_accent3_400);
             } catch (Exception ignored) {
             }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+        }
+
+        // 2. Android 8.1 - 11 (API 27 - 30): WallpaperManager extraction
+        if (primaryColor == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             try {
                 WallpaperManager wm = WallpaperManager.getInstance(context);
                 WallpaperColors wc = wm != null
                         ? wm.getWallpaperColors(WallpaperManager.FLAG_SYSTEM)
                         : null;
                 if (wc != null) {
-                    int primary = wc.getPrimaryColor().toArgb();
-                    int secondary = wc.getSecondaryColor() != null
+                    primaryColor = wc.getPrimaryColor().toArgb();
+                    secondaryColor = wc.getSecondaryColor() != null
                             ? wc.getSecondaryColor().toArgb()
-                            : shiftHue(primary, 28f);
-                    int tertiary = wc.getTertiaryColor() != null
+                            : primaryColor;
+                    tertiaryColor = wc.getTertiaryColor() != null
                             ? wc.getTertiaryColor().toArgb()
-                            : shiftHue(primary, -32f);
-
-                    int[] extracted = new int[]{
-                            primary,
-                            secondary,
-                            tertiary,
-                            shiftHue(primary, 15f),
-                            shiftHue(tertiary, -15f),
-                            shiftHue(secondary, 18f),
-                            shiftHue(primary, -20f)
-                    };
-                    for (int i = 0; i < PLUME_COUNT; i++) {
-                        int softened = softenForAura(extracted[i], 0f);
-                        if (basePalette[i] != softened) {
-                            basePalette[i] = softened;
-                            changed = true;
-                        }
-                    }
+                            : primaryColor;
                 }
             } catch (Exception ignored) {
             }
         }
 
-        if (changed && viewWidth > 0 && viewHeight > 0) {
-            createShaders();
+        if (primaryColor != null) {
+            applyVibrantVariantPalette(
+                    primaryColor,
+                    secondaryColor != null ? secondaryColor : primaryColor,
+                    tertiaryColor != null ? tertiaryColor : primaryColor
+            );
         }
     }
 
-    private int softenForAura(int color, float hueOffsetDegrees) {
-        float[] hsv = new float[3];
-        Color.colorToHSV(color, hsv);
-        hsv[0] = (hsv[0] + hueOffsetDegrees + 360f) % 360f;
-        if (hsv[1] > 0.05f) {
-            hsv[1] = Math.max(0.28f, Math.min(0.55f, hsv[1] * 0.85f));
+    private void applyVibrantVariantPalette(int primary, int secondary, int tertiary) {
+        float[] hsv1 = new float[3];
+        float[] hsv2 = new float[3];
+        float[] hsv3 = new float[3];
+        Color.colorToHSV(primary, hsv1);
+        Color.colorToHSV(secondary, hsv2);
+        Color.colorToHSV(tertiary, hsv3);
+
+        // Ensure rich multi-tone hue separation even if the wallpaper uses a monochrome tonal spot
+        float hue1 = hsv1[0];
+        float hue3 = angularDistance(hue1, hsv3[0]) < 24f ? (hue1 + 45f) % 360f : hsv3[0];
+        float hue2 = angularDistance(hue1, hsv2[0]) < 16f ? (hue1 + 22f) % 360f : hsv2[0];
+        float hue4 = (hue1 - 28f + 360f) % 360f;
+
+        boolean changed = false;
+        int[] newColors = new int[]{
+                toVibrantRgb(hue1, hsv1[1], hsv1[2]),
+                toVibrantRgb(hue2, hsv2[1], hsv2[2]),
+                toVibrantRgb(hue3, hsv3[1], hsv3[2]),
+                toVibrantRgb(hue4, hsv1[1], hsv1[2])
+        };
+
+        for (int i = 0; i < COLOR_COUNT; i++) {
+            if (vibrantPalette[i] != newColors[i]) {
+                vibrantPalette[i] = newColors[i];
+                changed = true;
+            }
         }
-        hsv[2] = Math.max(0.78f, Math.min(0.92f, hsv[2]));
-        return Color.HSVToColor(hsv) & 0x00FFFFFF;
+
+        if (changed && bufWidth > 0 && bufHeight > 0) {
+            createShadersAndBuffers();
+        }
     }
 
-    private int shiftHue(int color, float degrees) {
+    private float angularDistance(float a, float b) {
+        float diff = Math.abs(a - b) % 360f;
+        return diff > 180f ? 360f - diff : diff;
+    }
+
+    private int toVibrantRgb(float hue, float sat, float val) {
+        float vibrantSat = sat < 0.08f ? 0.86f : Math.max(0.84f, Math.min(0.98f, sat * 1.42f));
+        float vibrantVal = Math.max(0.94f, Math.min(1.00f, val * 1.22f));
+        return Color.HSVToColor(new float[]{hue, vibrantSat, vibrantVal}) & 0x00FFFFFF;
+    }
+
+    /**
+     * Brightens and slightly desaturates a vibrant color to create a luminous liquid highlight core.
+     */
+    private int toLuminousCoreColor(int rgb) {
         float[] hsv = new float[3];
-        Color.colorToHSV(color, hsv);
-        hsv[0] = (hsv[0] + degrees + 360f) % 360f;
-        return Color.HSVToColor(hsv);
+        Color.colorToHSV(rgb | 0xFF000000, hsv);
+        hsv[1] = Math.max(0.35f, hsv[1] * 0.62f);
+        hsv[2] = 1.0f;
+        return Color.HSVToColor(255, hsv);
     }
 
     public void setAuraColors(@NonNull int[] colors) {
         if (colors.length == 0) return;
-        this.useWallpaperColors = false;
-        for (int i = 0; i < PLUME_COUNT; i++) {
-            basePalette[i] = softenForAura(colors[i % colors.length], 0f);
+        this.useDynamicColors = false;
+        for (int i = 0; i < COLOR_COUNT; i++) {
+            float[] hsv = new float[3];
+            Color.colorToHSV(colors[i % colors.length], hsv);
+            vibrantPalette[i] = toVibrantRgb(hsv[0], hsv[1], hsv[2]);
         }
-        if (viewWidth > 0 && viewHeight > 0) {
-            createShaders();
+        if (bufWidth > 0 && bufHeight > 0) {
+            createShadersAndBuffers();
             invalidate();
         }
     }
@@ -251,35 +252,65 @@ public class AuraDiffusionView extends View {
         this.viewWidth = w;
         this.viewHeight = h;
         if (w > 0 && h > 0) {
-            createShaders();
+            this.bufWidth = Math.max(64, w / BUFFER_SCALE);
+            this.bufHeight = Math.max(128, h / BUFFER_SCALE);
+            srcRect.set(0, 0, bufWidth, bufHeight);
+            dstRect.set(0, 0, w, h);
+            createShadersAndBuffers();
         }
     }
 
-    private void createShaders() {
-        float[] stops = new float[]{0.0f, 0.16f, 0.34f, 0.52f, 0.70f, 0.86f, 1.0f};
-        float[] falloff = new float[]{1.0f, 0.86f, 0.62f, 0.36f, 0.16f, 0.04f, 0.0f};
-        int shaderInternalPeakAlpha = 180;
-
-        for (int i = 0; i < PLUME_COUNT; i++) {
-            int rgb = basePalette[i] & 0x00FFFFFF;
-            int r = Color.red(rgb);
-            int g = Color.green(rgb);
-            int b = Color.blue(rgb);
-
-            int[] gradientColors = new int[stops.length];
-            for (int s = 0; s < stops.length; s++) {
-                int a = Math.round(shaderInternalPeakAlpha * falloff[s]);
-                gradientColors[s] = Color.argb(a, r, g, b);
+    private void createShadersAndBuffers() {
+        if (fluidBitmap == null || fluidBitmap.getWidth() != bufWidth || fluidBitmap.getHeight() != bufHeight) {
+            if (fluidBitmap != null) {
+                fluidBitmap.recycle();
             }
-
-            plumeShaders[i] = new RadialGradient(
-                    0f, 0f, 1f,
-                    gradientColors,
-                    stops,
-                    Shader.TileMode.CLAMP
-            );
-            plumePaints[i].setShader(plumeShaders[i]);
+            fluidBitmap = Bitmap.createBitmap(bufWidth, bufHeight, Bitmap.Config.ARGB_8888);
+            fluidCanvas = new Canvas(fluidBitmap);
         }
+
+        // Configure 3 Gaussian blur radii in buffer space (multiplied by 8x when drawn to screen):
+        // - Ambient Aura: ~14px buffer blur -> ~112px silky screen diffusion
+        // - Primary Wave: ~6.5px buffer blur -> ~52px smooth liquid body
+        // - Specular Core: ~2.5px buffer blur -> ~20px crisp glowing bezel rim
+        float minDim = Math.min(bufWidth, bufHeight);
+        float ambientBlur = Math.max(6f, minDim * 0.11f);
+        float primaryBlur = Math.max(3f, minDim * 0.052f);
+        float coreBlur = Math.max(1.5f, minDim * 0.020f);
+
+        ambientLayerPaint.setMaskFilter(new BlurMaskFilter(ambientBlur, BlurMaskFilter.Blur.NORMAL));
+        primaryWavePaint.setMaskFilter(new BlurMaskFilter(primaryBlur, BlurMaskFilter.Blur.NORMAL));
+        specularCorePaint.setMaskFilter(new BlurMaskFilter(coreBlur, BlurMaskFilter.Blur.NORMAL));
+
+        int c0 = vibrantPalette[0] | 0xFF000000;
+        int c1 = vibrantPalette[1] | 0xFF000000;
+        int c2 = vibrantPalette[2] | 0xFF000000;
+        int c3 = vibrantPalette[3] | 0xFF000000;
+
+        // Repeating 5-stop gradient so the colors can flow continuously upward inside the wave
+        vibrantFlowShader = new LinearGradient(
+                0f, bufHeight,
+                bufWidth * 0.35f, 0f,
+                new int[]{c0, c1, c2, c3, c0},
+                new float[]{0.0f, 0.28f, 0.55f, 0.80f, 1.0f},
+                Shader.TileMode.MIRROR
+        );
+        ambientLayerPaint.setShader(vibrantFlowShader);
+        primaryWavePaint.setShader(vibrantFlowShader);
+
+        coreHighlightShader = new LinearGradient(
+                0f, bufHeight,
+                0f, 0f,
+                new int[]{
+                        toLuminousCoreColor(c0),
+                        toLuminousCoreColor(c1),
+                        toLuminousCoreColor(c2),
+                        toLuminousCoreColor(c3)
+                },
+                new float[]{0.0f, 0.35f, 0.70f, 1.0f},
+                Shader.TileMode.MIRROR
+        );
+        specularCorePaint.setShader(coreHighlightShader);
     }
 
     public void startAuraAnimation() {
@@ -287,15 +318,15 @@ public class AuraDiffusionView extends View {
             auraAnimator.cancel();
         }
 
-        updateWallpaperColors();
+        updateVibrantDynamicColors();
         setVisibility(VISIBLE);
         progress = 0f;
-        invalidate(); // Draw frame 0 immediately without waiting for next choreographer tick
+        invalidate();
 
         auraAnimator = ValueAnimator.ofFloat(0f, 1f);
         auraAnimator.setDuration(ANIMATION_DURATION_MS);
-        // Starts with immediate upward velocity at t=0 (no ease-in pause) and glides smoothly to the top
-        auraAnimator.setInterpolator(new PathInterpolator(0.0f, 0.0f, 0.25f, 1.0f));
+        // Immediate upward surge from the bottom bezel that glides smoothly to the top-center
+        auraAnimator.setInterpolator(new PathInterpolator(0.0f, 0.0f, 0.24f, 1.0f));
         auraAnimator.addUpdateListener(animation -> {
             progress = (float) animation.getAnimatedValue();
             invalidate();
@@ -303,72 +334,254 @@ public class AuraDiffusionView extends View {
         auraAnimator.addListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                // Keep INVISIBLE instead of GONE so dimensions remain cached for next invocation
                 setVisibility(INVISIBLE);
             }
         });
         auraAnimator.start();
     }
 
-    @Override
-    protected void onDraw(@NonNull Canvas canvas) {
-        super.onDraw(canvas);
-        if (viewWidth == 0 || viewHeight == 0 || plumeShaders[0] == null) {
+    /**
+     * Exact 5-segment arc-length parameterized screen perimeter rail in buffer coordinates.
+     * Starts right at the bottom-most end of the screen (s = 0.0 at bottom-center, y = bufHeight)
+     * and hugs the physical edge all the way to the top-center (s = 1.0 at x = bufWidth/2, y = 0):
+     *   1. Bottom horizontal bezel (y = bufHeight) from bottom-center to bottom corner.
+     *   2. Bottom 90-degree screen corner arc.
+     *   3. Left (x = 0) or Right (x = bufWidth) vertical edge from bottom to top.
+     *   4. Top 90-degree screen corner arc.
+     *   5. Top horizontal bezel (y = 0) from top corner to exact top-center (x = bufWidth/2, y = 0).
+     *
+     * @param side -1 for Left Border Rail, +1 for Right Border Rail
+     * @param s    normalized arc-length position along the rail [0.0 .. 1.0]
+     * @param out  [bezelX, bezelY, inwardNormalX, inwardNormalY]
+     */
+    private void computeRailPoint(int side, float s, float[] out) {
+        float clampedS = Math.max(0f, Math.min(1f, s));
+        float halfW = bufWidth * 0.5f;
+        float cornerR = Math.min(bufWidth, bufHeight) * 0.065f;
+
+        float bottomHorizLen = Math.max(1f, halfW - cornerR);
+        float bottomCornerLen = (float) (Math.PI * 0.5 * cornerR);
+        float verticalLen = Math.max(1f, bufHeight - 2f * cornerR);
+        float topCornerLen = (float) (Math.PI * 0.5 * cornerR);
+        float topHorizLen = Math.max(1f, halfW - cornerR);
+
+        float totalLen = bottomHorizLen + bottomCornerLen + verticalLen + topCornerLen + topHorizLen;
+        float d = clampedS * totalLen;
+
+        if (d <= bottomHorizLen) {
+            // 1. Bottom-most horizontal edge (y = bufHeight), sweeping outward toward bottom corners
+            out[0] = halfW + side * d;
+            out[1] = bufHeight;
+            out[2] = 0f;
+            out[3] = -1f; // Inward normal points straight up from the bottom edge
+            return;
+        }
+        d -= bottomHorizLen;
+
+        if (d <= bottomCornerLen) {
+            // 2. Bottom corner 90-degree turn
+            float u = d / bottomCornerLen;
+            float theta = (float) (u * (Math.PI * 0.5));
+            float sinT = (float) Math.sin(theta);
+            float cosT = (float) Math.cos(theta);
+            float cx = (side < 0) ? cornerR : (bufWidth - cornerR);
+            float cy = bufHeight - cornerR;
+
+            out[0] = cx + side * cornerR * sinT;
+            out[1] = cy + cornerR * cosT;
+            out[2] = -side * sinT;
+            out[3] = -cosT;
+            return;
+        }
+        d -= bottomCornerLen;
+
+        if (d <= verticalLen) {
+            // 3. Left (x = 0) or Right (x = bufWidth) vertical border
+            out[0] = (side < 0) ? 0f : bufWidth;
+            out[1] = (bufHeight - cornerR) - d;
+            out[2] = -side; // Inward normal points horizontally toward screen center
+            out[3] = 0f;
+            return;
+        }
+        d -= verticalLen;
+
+        if (d <= topCornerLen) {
+            // 4. Top corner 90-degree turn
+            float u = d / topCornerLen;
+            float theta = (float) (u * (Math.PI * 0.5));
+            float sinT = (float) Math.sin(theta);
+            float cosT = (float) Math.cos(theta);
+            float cx = (side < 0) ? cornerR : (bufWidth - cornerR);
+            float cy = cornerR;
+
+            out[0] = cx + side * cornerR * cosT;
+            out[1] = cy - cornerR * sinT;
+            out[2] = -side * cosT;
+            out[3] = sinT;
+            return;
+        }
+        d -= topCornerLen;
+
+        // 5. Top horizontal bezel (y = 0) converging to exact Top-Center (halfW, 0)
+        float startTopX = (side < 0) ? cornerR : (bufWidth - cornerR);
+        out[0] = startTopX - side * d;
+        out[1] = 0f;
+        out[2] = 0f;
+        out[3] = 1f; // Inward normal points straight down from the top edge
+    }
+
+    /**
+     * Builds a single continuous, smooth cubic/quadratic spline wave ribbon Path along the rail
+     * between [tailS, headS]. The outer edge extends past the bezel by outwardBleed so the
+     * Gaussian blur stays at 100% strength right on the screen edge, while the inner edge
+     * undulates smoothly like a real liquid wave.
+     */
+    private void buildContinuousWavePath(
+            @NonNull Path outPath,
+            int side,
+            float tailS,
+            float headS,
+            float thicknessScale,
+            float phaseOffset,
+            float outwardBleed
+    ) {
+        outPath.reset();
+        float clampedTail = Math.max(0f, Math.min(1f, tailS));
+        float clampedHead = Math.max(0f, Math.min(1f, headS));
+        float span = clampedHead - clampedTail;
+        if (span <= 0.005f) {
             return;
         }
 
-        for (int i = 0; i < PLUME_COUNT; i++) {
-            FluidPlume p = plumes[i];
-            if (progress < p.startTime) {
-                continue;
-            }
+        float sidePhase = (side < 0) ? phaseOffset : (phaseOffset + 0.75f);
 
-            // Linear localT (since PathInterpolator already shapes the global curve,
-            // avoiding double-easing lag at the start)
-            float localT = Math.min(1f, (progress - p.startTime) / (p.endTime - p.startTime));
+        for (int i = 0; i < WAVE_SAMPLES; i++) {
+            // u = 0 at trailing tail, u = 1 at leading wave crest
+            float u = (float) i / (WAVE_SAMPLES - 1);
+            float s = clampedTail + u * span;
 
-            float diffusionSpread = 1.0f + (0.55f * localT);
-            float radiusX = viewWidth * p.radiusXRatio * diffusionSpread;
-            float radiusY = viewHeight * p.radiusYRatio * (1.0f + 0.45f * localT);
+            computeRailPoint(side, s, railPoint);
+            float bx = railPoint[0];
+            float by = railPoint[1];
+            float nx = railPoint[2];
+            float ny = railPoint[3];
 
-            // Starts closer to the bottom screen edge so the soft upper glow is visible on frame 1
-            float startY = viewHeight + (radiusY * 0.22f);
-            float endY = -(radiusY * 0.50f);
-            float currentY = startY + (endY - startY) * localT;
+            // Asymmetric fluid droplet envelope: fuller, steeper surging front crest and tapered tail
+            float waveEnvelope = (float) (Math.sin(u * Math.PI) * Math.pow(u, 0.32));
 
-            float waveAngle = (float) (localT * p.swayFreq * Math.PI + p.swayPhase);
-            float currentX = viewWidth * (p.baseXRatio + p.swayAmpRatio * (float) Math.sin(waveAngle));
+            // Starts higher/deeper at the bottom-most end (s = 0) and tapers lower/sleeker
+            // as it climbs up the sides and converges at the top-center (s = 1.0)
+            float bottomToTopTaper = (float) Math.pow(1.0f - 0.80f * s, 1.15);
 
-            float currentRotation = p.startAngle + (p.endAngle - p.startAngle) * localT;
+            // 3 traveling harmonic sine waves (dispersion) create a continuous, rolling liquid surface
+            // with zero discrete "balls"
+            float w1 = (float) Math.sin((u * 2.2f - progress * 4.0f) * Math.PI * 2.0 + sidePhase);
+            float w2 = (float) Math.sin((s * 4.5f - progress * 6.5f) * Math.PI * 2.0 - sidePhase * 0.7f);
+            float w3 = (float) Math.cos((u * 3.8f + progress * 5.2f) * Math.PI * 2.0 + sidePhase * 1.3f);
+            float harmonicUndulation = 1.0f + (0.28f * w1) + (0.18f * w2) + (0.10f * w3);
 
-            // Quick, soft entry fade (starts at 35% strength at t=0 and reaches 100% by localT = 0.08)
-            float alphaEnvelope;
-            if (localT < 0.08f) {
-                alphaEnvelope = 0.35f + 0.65f * (localT / 0.08f);
-            } else if (localT > 0.42f) {
-                float fadeOut = 1f - ((localT - 0.42f) / 0.58f);
-                alphaEnvelope = fadeOut * fadeOut * (3f - 2f * fadeOut);
-            } else {
-                alphaEnvelope = 1f;
-            }
+            // Base inward reach at the bottom is ~23% of screen width, tapering smoothly toward top-center
+            float inwardReach = bufWidth * 0.23f * thicknessScale
+                    * bottomToTopTaper * waveEnvelope * harmonicUndulation;
 
-            float combinedAlpha = alphaEnvelope * p.weight * MASTER_OPACITY;
-            int paintAlpha = Math.max(0, Math.min(255, Math.round(combinedAlpha * 255f)));
-            if (paintAlpha == 0) {
-                continue;
-            }
+            // Anchor outer boundary slightly outside the bezel so the blur is 100% solid at the edge
+            outerX[i] = bx - nx * outwardBleed;
+            outerY[i] = by - ny * outwardBleed;
 
-            plumePaints[i].setAlpha(paintAlpha);
-
-            Matrix matrix = plumeMatrices[i];
-            matrix.reset();
-            matrix.postScale(radiusX, radiusY);
-            matrix.postRotate(currentRotation);
-            matrix.postTranslate(currentX, currentY);
-            plumeShaders[i].setLocalMatrix(matrix);
-
-            canvas.drawRect(0f, 0f, viewWidth, viewHeight, plumePaints[i]);
+            // Smooth undulating inner liquid boundary
+            innerX[i] = bx + nx * inwardReach;
+            innerY[i] = by + ny * inwardReach;
         }
+
+        // Trace the inner undulating liquid wave from tail (0) to head (WAVE_SAMPLES - 1)
+        // using continuous midpoint quadratic Bezier splines (C1 smooth, zero sharp corners or balls)
+        outPath.moveTo(outerX[0], outerY[0]);
+        outPath.lineTo(innerX[0], innerY[0]);
+
+        for (int i = 1; i < WAVE_SAMPLES - 1; i++) {
+            float midX = (innerX[i] + innerX[i + 1]) * 0.5f;
+            float midY = (innerY[i] + innerY[i + 1]) * 0.5f;
+            outPath.quadTo(innerX[i], innerY[i], midX, midY);
+        }
+        outPath.lineTo(innerX[WAVE_SAMPLES - 1], innerY[WAVE_SAMPLES - 1]);
+        outPath.lineTo(outerX[WAVE_SAMPLES - 1], outerY[WAVE_SAMPLES - 1]);
+
+        // Close back along the outer bezel rail from head down to tail
+        for (int i = WAVE_SAMPLES - 2; i >= 0; i--) {
+            outPath.lineTo(outerX[i], outerY[i]);
+        }
+        outPath.close();
+    }
+
+    @Override
+    protected void onDraw(@NonNull Canvas canvas) {
+        super.onDraw(canvas);
+        if (viewWidth == 0 || viewHeight == 0 || fluidBitmap == null || vibrantFlowShader == null) {
+            return;
+        }
+
+        // Clear the low-res fluid buffer
+        fluidCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+        // At progress = 0, the wave already spans [0.00 .. 0.22] right at the bottom-most end
+        // (cradling the bottom bezel and bottom corners) and immediately surges up both sides.
+        // At progress -> 1, the tail reaches 1.00 (top-center) and dissolves seamlessly.
+        float headS = 0.22f + 1.08f * progress;
+        float tailS = -0.34f + 1.34f * (float) Math.pow(progress, 1.08);
+
+        // Smooth global fade-in at launch and gentle dissipation as the streams kiss at top-center
+        float masterFade;
+        if (progress < 0.05f) {
+            masterFade = 0.60f + 0.40f * (progress / 0.05f);
+        } else if (progress > 0.78f) {
+            float t = 1f - ((progress - 0.78f) / 0.22f);
+            masterFade = t * t * (3f - 2f * t);
+        } else {
+            masterFade = 1f;
+        }
+
+        int baseAlpha = Math.max(0, Math.min(255, Math.round(masterFade * MASTER_OPACITY * 255f)));
+        if (baseAlpha == 0) {
+            return;
+        }
+
+        // Continuously flow the vibrant gradient upward along with the rising liquid
+        gradientMatrix.reset();
+        gradientMatrix.postTranslate(0f, -progress * bufHeight * 0.85f);
+        vibrantFlowShader.setLocalMatrix(gradientMatrix);
+        coreHighlightShader.setLocalMatrix(gradientMatrix);
+
+        float bleed = Math.max(4f, bufWidth * 0.08f);
+
+        // Build continuous spline wave ribbons for Left (-1) and Right (+1) borders:
+        // 1. Ambient diffused aura ribbon (widest inward reach, softest Gaussian diffusion)
+        buildContinuousWavePath(leftAmbientPath, -1, tailS - 0.03f, headS + 0.02f, 1.25f, 0.0f, bleed);
+        buildContinuousWavePath(rightAmbientPath, 1, tailS - 0.03f, headS + 0.02f, 1.25f, 0.0f, bleed);
+
+        // 2. Primary vibrant liquid wave body (rich undulating crest & trough silhouette)
+        buildContinuousWavePath(leftPrimaryPath, -1, tailS, headS, 0.92f, 1.4f, bleed);
+        buildContinuousWavePath(rightPrimaryPath, 1, tailS, headS, 0.92f, 1.4f, bleed);
+
+        // 3. Luminous bezel core (sleek inner highlight hugging the screen edge)
+        buildContinuousWavePath(leftCorePath, -1, tailS + 0.03f, headS - 0.01f, 0.48f, 2.8f, bleed);
+        buildContinuousWavePath(rightCorePath, 1, tailS + 0.03f, headS - 0.01f, 0.48f, 2.8f, bleed);
+
+        ambientLayerPaint.setAlpha(Math.round(baseAlpha * 0.58f));
+        primaryWavePaint.setAlpha(Math.round(baseAlpha * 0.88f));
+        specularCorePaint.setAlpha(Math.round(baseAlpha * 0.78f));
+
+        // Render the 3 continuous liquid layers into the Gaussian fluid buffer
+        fluidCanvas.drawPath(leftAmbientPath, ambientLayerPaint);
+        fluidCanvas.drawPath(rightAmbientPath, ambientLayerPaint);
+
+        fluidCanvas.drawPath(leftPrimaryPath, primaryWavePaint);
+        fluidCanvas.drawPath(rightPrimaryPath, primaryWavePaint);
+
+        fluidCanvas.drawPath(leftCorePath, specularCorePaint);
+        fluidCanvas.drawPath(rightCorePath, specularCorePaint);
+
+        // Present the hardware-filtered fluid buffer onto the screen
+        canvas.drawBitmap(fluidBitmap, srcRect, dstRect, bitmapPresentPaint);
     }
 
     @Override
