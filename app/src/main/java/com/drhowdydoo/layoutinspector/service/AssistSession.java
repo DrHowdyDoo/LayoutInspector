@@ -3,6 +3,7 @@ package com.drhowdydoo.layoutinspector.service;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
 import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -42,6 +43,7 @@ import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
 import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
 import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
+import com.drhowdydoo.layoutinspector.ui.AuraDiffusionView;
 import com.drhowdydoo.layoutinspector.ui.DrawableFrameLayout;
 import com.drhowdydoo.layoutinspector.util.DistanceArrowDrawer;
 import com.drhowdydoo.layoutinspector.util.DrawableLayoutHelper;
@@ -114,6 +116,8 @@ public class AssistSession extends VoiceInteractionSession {
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    private AuraDiffusionView auraDiffusionView;
+
     public AssistSession(Context context) {
         super(context);
     }
@@ -130,6 +134,9 @@ public class AssistSession extends VoiceInteractionSession {
     @Override
     public void onShow(@Nullable Bundle args, int showFlags) {
         Log.d("AssistantDebug", "AssistSession: onShow()");
+        if (auraDiffusionView != null && shouldEnableAuraAnimation(auraDiffusionView.getContext())) {
+            auraDiffusionView.startAuraAnimation();
+        }
         if (mAssistantView != null) mAssistantView.setVisibility(View.VISIBLE);
         if (mCardView != null && slideUpAnimation != null) {
             mCardView.startAnimation(slideUpAnimation);
@@ -173,6 +180,7 @@ public class AssistSession extends VoiceInteractionSession {
         settingsStub = mAssistantView.findViewById(R.id.settings_stub);
         btnExpandCollapse = mAssistantView.findViewById(R.id.btnExpandCollapse);
         draggableContainer = mAssistantView.findViewById(R.id.draggable_container);
+        auraDiffusionView = mAssistantView.findViewById(R.id.aura_diffusion_view);
 
         setUpAnimations();
         setUpViewPagerWithTab();
@@ -189,6 +197,28 @@ public class AssistSession extends VoiceInteractionSession {
         settingsCard = (FrameLayout) settingsStub.inflate();
         settingsCard.setVisibility(View.GONE);
         setUpSettings();
+    }
+
+    private boolean shouldEnableAuraAnimation(Context context) {
+        ActivityManager activityManager =
+                (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+
+        if (activityManager == null) {
+            return false;
+        }
+
+        // Exclude Android Go and devices classified as low RAM.
+        if (activityManager.isLowRamDevice()) {
+            return false;
+        }
+
+        ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(memoryInfo);
+
+        // Require at least 4 GB physical RAM.
+        long minimumRam = 4L * 1024 * 1024 * 1024;
+
+        return memoryInfo.totalMem >= minimumRam;
     }
 
     private void setUpSettings() {

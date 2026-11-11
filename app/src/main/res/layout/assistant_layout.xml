@@ -10,6 +10,14 @@
     android:fitsSystemWindows="true"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <com.drhowdydoo.layoutinspector.ui.AuraDiffusionView
+        android:id="@+id/aura_diffusion_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="invisible" />
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/draggable_container"
         android:layout_width="match_parent"
