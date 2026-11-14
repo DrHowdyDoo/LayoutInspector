@@ -50,6 +50,10 @@
             android:permission="android.permission.BIND_SPEECH_RECOGNITION_SERVICE"
             android:exported="true">
 
+            <meta-data
+                android:name="android.speech"
+                android:resource="@xml/recognition_service" />
+
             <intent-filter>
                 <action android:name="android.speech.RecognitionService" />
             </intent-filter>

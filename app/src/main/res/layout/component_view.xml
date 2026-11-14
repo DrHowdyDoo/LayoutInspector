@@ -423,6 +423,35 @@
             </LinearLayout>
 
             <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/component_attribute_row_gap"
+                android:paddingVertical="@dimen/component_attribute_padding_vertical"
+                android:background="@drawable/bg_card_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/component_attribute_padding_horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start|center_vertical"
+                    android:text="Effective Visibility"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+
+                <TextView
+                    android:id="@+id/tvEffectiveVisibility"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textIsSelectable="true"
+                    android:gravity="end|center_vertical"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    tools:text="Visible" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/containerContentDesc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

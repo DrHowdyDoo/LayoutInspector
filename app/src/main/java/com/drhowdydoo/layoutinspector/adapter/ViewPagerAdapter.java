@@ -486,6 +486,11 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder.tvElevation.setText(getMeasurement(viewNode.getElevation()));
         String visibility = viewNode.getVisibility() == VISIBLE ? "Visible" : "Invisible";
         componentTabViewholder.tvVisibility.setText(visibility);
+        String effectiveVisibility = viewNodeWrapper.isVisible()
+                ? "Visible"
+                : "Invisible";
+
+        componentTabViewholder.tvEffectiveVisibility.setText(effectiveVisibility);
         CharSequence contentDescription = viewNode.getContentDescription();
         if (contentDescription == null || contentDescription.toString().isEmpty()) {
             componentTabViewholder.containerContentDesc.setVisibility(View.GONE);
@@ -597,7 +602,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         ImageView imgComponentIcon;
         TextView tvPackage,tvWidth, tvHeight, tvComponentId,
                 tvComponentName,tvTextSize,tvTextColor,tvTextStyle,
-                tvAlpha, tvElevation,tvVisibility,tvContentDesc,tvTheme,tvChildCount;
+                tvAlpha, tvElevation,tvVisibility,tvEffectiveVisibility,
+                tvContentDesc,tvTheme,tvChildCount;
         LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc,containerTheme, emptyComponentTree;
         TextView tvSelectComponent,tvProtectedTitle,tvProtectedSubtitle;
         MaterialButton btnMoveLeft, btnMoveRight;
@@ -619,6 +625,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             tvAlpha = itemView.findViewById(R.id.tvAlpha);
             tvElevation = itemView.findViewById(R.id.tvElevation);
             tvVisibility = itemView.findViewById(R.id.tvVisibility);
+            tvEffectiveVisibility = itemView.findViewById(R.id.tvEffectiveVisibility);
             tvContentDesc = itemView.findViewById(R.id.tvContentDesc);
             containerContentDesc = itemView.findViewById(R.id.containerContentDesc);
             containerTheme = itemView.findViewById(R.id.containerTheme);
