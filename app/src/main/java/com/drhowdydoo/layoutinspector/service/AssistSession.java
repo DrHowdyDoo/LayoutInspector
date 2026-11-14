@@ -33,6 +33,9 @@ import android.view.ViewStub;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.transition.ChangeBounds;
 import androidx.transition.Slide;
 import androidx.transition.Transition;
@@ -158,6 +161,40 @@ public class AssistSession extends VoiceInteractionSession {
         super.onHide();
     }
 
+    private void setUpDraggableContainerInsets() {
+
+        ViewCompat.setOnApplyWindowInsetsListener(mAssistantView, (view, windowInsets) -> {
+
+            androidx.core.graphics.Insets safeInsets = windowInsets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout()
+            );
+
+            ViewGroup.LayoutParams layoutParams =
+                    draggableContainer.getLayoutParams();
+
+            if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
+
+                ViewGroup.MarginLayoutParams params =
+                        (ViewGroup.MarginLayoutParams) layoutParams;
+
+                params.leftMargin = safeInsets.left;
+                params.topMargin = safeInsets.top;
+                params.rightMargin = safeInsets.right;
+                params.bottomMargin = safeInsets.bottom;
+
+                draggableContainer.setLayoutParams(params);
+            }
+
+            return WindowInsetsCompat.CONSUMED;
+        });
+
+        // Request insets after the view is attached to the window.
+        mAssistantView.post(() ->
+                ViewCompat.requestApplyInsets(mAssistantView)
+        );
+    }
+
     @SuppressLint("InflateParams")
     @SuppressWarnings("ClickableViewAccessibility")
     @Override
@@ -182,6 +219,7 @@ public class AssistSession extends VoiceInteractionSession {
         draggableContainer = mAssistantView.findViewById(R.id.draggable_container);
         auraDiffusionView = mAssistantView.findViewById(R.id.aura_diffusion_view);
 
+        setUpDraggableContainerInsets();
         setUpAnimations();
         setUpViewPagerWithTab();
         setUpClickListeners();
@@ -559,25 +597,46 @@ public class AssistSession extends VoiceInteractionSession {
         });
 
         mCardView.setOnTouchListener(new View.OnTouchListener() {
+
             float dX, dY;
+            final int[] parentLocation = new int[2];
 
             @Override
             public boolean onTouch(View view, MotionEvent event) {
+
                 switch (event.getAction()) {
+
                     case MotionEvent.ACTION_DOWN:
-                        dX = view.getX() - event.getRawX();
-                        dY = view.getY() - event.getRawY();
+
+                        draggableContainer.getLocationOnScreen(parentLocation);
+
+                        dX = view.getX() -
+                                (event.getRawX() - parentLocation[0]);
+
+                        dY = view.getY() -
+                                (event.getRawY() - parentLocation[1]);
+
                         return true;
 
                     case MotionEvent.ACTION_MOVE:
-                        float newX = event.getRawX() + dX;
-                        float newY = event.getRawY() + dY;
+
+                        draggableContainer.getLocationOnScreen(parentLocation);
+
+                        float newX = event.getRawX()
+                                - parentLocation[0] + dX;
+
+                        float newY = event.getRawY()
+                                - parentLocation[1] + dY;
+
                         newX = Math.max(0, Math.min(newX,
                                 draggableContainer.getWidth() - view.getWidth()));
+
                         newY = Math.max(0, Math.min(newY,
                                 draggableContainer.getHeight() - view.getHeight()));
+
                         view.setX(newX);
                         view.setY(newY);
+
                         return true;
 
                     case MotionEvent.ACTION_UP:

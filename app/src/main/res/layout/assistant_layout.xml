@@ -7,7 +7,7 @@
     android:background="#0AFFFFFF"
     android:visibility="invisible"
     tools:visibility="visible"
-    android:fitsSystemWindows="true"
+    android:fitsSystemWindows="false"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <com.drhowdydoo.layoutinspector.ui.AuraDiffusionView
