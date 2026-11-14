@@ -486,11 +486,22 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         componentTabViewholder.tvElevation.setText(getMeasurement(viewNode.getElevation()));
         String visibility = viewNode.getVisibility() == VISIBLE ? "Visible" : "Invisible";
         componentTabViewholder.tvVisibility.setText(visibility);
-        String effectiveVisibility = viewNodeWrapper.isVisible()
-                ? "Visible"
-                : "Invisible";
 
-        componentTabViewholder.tvEffectiveVisibility.setText(effectiveVisibility);
+        componentTabViewholder.tvEffectiveVisibility.setText(
+                viewNodeWrapper.isVisible() ? "Visible" : "Invisible");
+
+        String visibilityBlocker = viewNodeWrapper.getVisibilityBlockedBy();
+        boolean showVisibilityBlocker = !viewNodeWrapper.isVisible()
+                && visibilityBlocker != null
+                && !visibilityBlocker.isEmpty();
+
+        componentTabViewholder.containerVisibilityBlocker.setVisibility(
+                showVisibilityBlocker ? VISIBLE : View.GONE);
+
+        if (showVisibilityBlocker) {
+            componentTabViewholder.tvVisibilityBlocker.setText(visibilityBlocker);
+        }
+
         CharSequence contentDescription = viewNode.getContentDescription();
         if (contentDescription == null || contentDescription.toString().isEmpty()) {
             componentTabViewholder.containerContentDesc.setVisibility(View.GONE);
@@ -603,8 +614,9 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         TextView tvPackage,tvWidth, tvHeight, tvComponentId,
                 tvComponentName,tvTextSize,tvTextColor,tvTextStyle,
                 tvAlpha, tvElevation,tvVisibility,tvEffectiveVisibility,
-                tvContentDesc,tvTheme,tvChildCount;
-        LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,containerContentDesc,containerTheme, emptyComponentTree;
+                tvVisibilityBlocker,tvContentDesc,tvTheme,tvChildCount;
+        LinearLayout containerTextAttribute,containerPackage,containerComponentInfo,
+                containerContentDesc,containerVisibilityBlocker,containerTheme,emptyComponentTree;
         TextView tvSelectComponent,tvProtectedTitle,tvProtectedSubtitle;
         MaterialButton btnMoveLeft, btnMoveRight;
         public ComponentTabViewholder(@NonNull View itemView) {
@@ -626,6 +638,8 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             tvElevation = itemView.findViewById(R.id.tvElevation);
             tvVisibility = itemView.findViewById(R.id.tvVisibility);
             tvEffectiveVisibility = itemView.findViewById(R.id.tvEffectiveVisibility);
+            tvVisibilityBlocker = itemView.findViewById(R.id.tvVisibilityBlocker);
+            containerVisibilityBlocker = itemView.findViewById(R.id.containerVisibilityBlocker);
             tvContentDesc = itemView.findViewById(R.id.tvContentDesc);
             containerContentDesc = itemView.findViewById(R.id.containerContentDesc);
             containerTheme = itemView.findViewById(R.id.containerTheme);

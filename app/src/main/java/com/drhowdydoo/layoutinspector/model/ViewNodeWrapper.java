@@ -24,6 +24,7 @@ public class ViewNodeWrapper {
     private int levelInParent;
     private int positionInHierarchy;
     private String simpleClassName;
+    private String visibilityBlockedBy;
     private ArrowSet arrowSet;
 
     public ViewNodeWrapper(AssistStructure.ViewNode viewNode,
@@ -98,6 +99,18 @@ public class ViewNodeWrapper {
 
     public boolean isVisible() {
         return visibility;
+    }
+
+    /**
+     * Returns the first ancestor that caused this node to become effectively invisible.
+     * Null means the node is not blocked by an ancestor (or no blocker was recorded).
+     */
+    public String getVisibilityBlockedBy() {
+        return visibilityBlockedBy;
+    }
+
+    public void setVisibilityBlockedBy(String visibilityBlockedBy) {
+        this.visibilityBlockedBy = visibilityBlockedBy;
     }
 
     /** Retained for compatibility with the original mutable wrapper API. */

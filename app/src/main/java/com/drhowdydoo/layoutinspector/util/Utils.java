@@ -101,7 +101,7 @@ public class Utils {
 
             int windowNodeStart = flatNodes.size();
             TreeNode root = buildViewHierarchy(rootViewNode, 0, null,
-                    windowToOverlay, 0, 0, windowClip, true, 1f, flatNodes);
+                    windowToOverlay, 0, 0, windowClip, true, 1f, null, flatNodes);
             if (root == null) continue;
 
             // Resolve foreground layers before deciding whether this launcher window actually
@@ -170,6 +170,7 @@ public class Utils {
                                                Rect inheritedClip,
                                                boolean parentVisible,
                                                float parentAlpha,
+                                               String parentVisibilityBlocker,
                                                List<TreeNode> flatNodes) {
         throwIfCancelled();
 
@@ -227,6 +228,7 @@ public class Utils {
                 depth,
                 depth,
                 position);
+        wrapper.setVisibilityBlockedBy(parentVisibilityBlocker);
 
         // Keep focused diagnostics for launcher containers. These logs make it possible to
         // distinguish a genuinely visible drawer from launcher nodes retained off-screen.
@@ -259,12 +261,45 @@ public class Utils {
             throwIfCancelled();
             AssistStructure.ViewNode child = viewNode.getChildAt(i);
             if (child != null) {
+                String blockerForChildren = parentVisibilityBlocker;
+                if (blockerForChildren == null && !isVisible) {
+                    blockerForChildren = describeVisibilityBlocker(viewNode);
+                }
+
                 buildViewHierarchy(child, depth + 1, treeNode,
                         localToOverlay, childScrollX, childScrollY,
-                        childClip, isVisible, alpha, flatNodes);
+                        childClip, isVisible, alpha,
+                        blockerForChildren, flatNodes);
             }
         }
         return treeNode;
+    }
+
+
+    /**
+     * Describes the first node in an ancestor chain that makes descendants effectively
+     * invisible. The returned value is diagnostic only; it does not affect visibility,
+     * bounds, occlusion, or selection.
+     */
+    private static String describeVisibilityBlocker(AssistStructure.ViewNode viewNode) {
+        if (viewNode == null) return "Unknown ancestor";
+
+        String idEntry = viewNode.getIdEntry();
+        String className = viewNode.getClassName();
+
+        if (className != null && !className.isEmpty()) {
+            int separator = className.lastIndexOf('.');
+            if (separator >= 0) {
+                className = className.substring(separator + 1);
+            }
+        } else {
+            className = "Unknown View";
+        }
+
+        if (idEntry != null && !idEntry.isEmpty()) {
+            return "@id/" + idEntry + " (" + className + ")";
+        }
+        return className + " (no resource ID)";
     }
 
     private static Rect mapLocalBounds(Matrix localToOverlay, int width, int height) {

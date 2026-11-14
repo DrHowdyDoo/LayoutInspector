@@ -452,6 +452,38 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/containerVisibilityBlocker"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/component_attribute_row_gap"
+                android:paddingVertical="@dimen/component_attribute_padding_vertical"
+                android:background="@drawable/bg_card_content"
+                android:orientation="horizontal"
+                android:paddingHorizontal="@dimen/component_attribute_padding_horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start|center_vertical"
+                    android:text="Visibility Blocked By"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+
+                <TextView
+                    android:id="@+id/tvVisibilityBlocker"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textIsSelectable="true"
+                    android:gravity="end|center_vertical"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    tools:text="@id/parent_container (FrameLayout)" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/containerContentDesc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
