@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:scrollbars="none"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -38,7 +38,6 @@
             app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
 
-
         <ImageView
             android:id="@+id/img_gesture_navigation"
             android:layout_width="wrap_content"
@@ -50,11 +49,12 @@
             app:srcCompat="@drawable/gesture_navigation" />
 
         <LinearLayout
+            android:id="@+id/linearLayout"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
             android:layout_marginHorizontal="16dp"
+            android:gravity="center"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="@+id/img_gesture_navigation"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/img_gesture_navigation"
@@ -63,26 +63,28 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Gesture navigation"
                 android:gravity="center"
-                android:textSize="16sp"
-                android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+                android:text="Gesture navigation"
+                android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:gravity="center"
-                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                android:text="Swipe up from a bottom corner to invoke Layout inspector"/>
+                android:text="Swipe up from a bottom corner to invoke Layout inspector"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
         </LinearLayout>
 
         <com.google.android.material.divider.MaterialDivider
             android:id="@+id/materialDivider"
-            android:layout_width="62dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="64dp"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="12dp"
+            app:dividerColor="?attr/colorOutlineVariant"
             app:layout_constraintBottom_toBottomOf="@+id/divider"
             app:layout_constraintEnd_toStartOf="@+id/divider"
             app:layout_constraintStart_toStartOf="parent"
@@ -92,18 +94,27 @@
             android:id="@+id/divider"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/circle"
+            android:backgroundTint="?colorSurfaceContainer"
+            android:fontFamily="@font/silkscreen"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="6dp"
+            android:rotation="-4"
             android:text="OR"
-            android:layout_marginTop="24dp"
             android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+            android:textColor="?attr/colorOnSurface"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/img_gesture_navigation" />
 
         <com.google.android.material.divider.MaterialDivider
             android:id="@+id/materialDivider2"
-            android:layout_width="62dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="64dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="32dp"
+            app:dividerColor="?attr/colorOutlineVariant"
             app:layout_constraintBottom_toBottomOf="@+id/divider"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/divider"
@@ -120,33 +131,98 @@
             app:layout_constraintTop_toBottomOf="@+id/divider" />
 
         <LinearLayout
+            android:id="@+id/linearLayout2"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
             android:layout_marginHorizontal="16dp"
+            android:gravity="center"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="@+id/img_three_btn_navigation"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/img_three_btn_navigation"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/img_three_btn_navigation">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="3-button navigation"
                 android:gravity="center"
-                android:textSize="16sp"
-                android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
+                android:text="3-button navigation"
+                android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:gravity="center"
-                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                android:text="Press and hold home button to invoke Layout inspector"/>
+                android:text="Press and hold home button to invoke Layout inspector"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
 
         </LinearLayout>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_power_btn_guide"
+            style="?attr/materialCardViewOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="36dp"
+            android:layout_marginEnd="24dp"
+            app:cardCornerRadius="22dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/img_three_btn_navigation">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/img_power_btn_hold_gesture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start|center_vertical"
+                    android:padding="16dp"
+                    android:src="@drawable/power_btn" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Power button hold"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center"
+                        android:text="On some devices, you can press and hold the Power button instead of the Home button to launch your digital assistant."
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/rounded_info_24"
+            android:layout_margin="12dp"
+            app:layout_constraintEnd_toEndOf="@+id/card_power_btn_guide"
+            app:layout_constraintTop_toTopOf="@+id/card_power_btn_guide" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

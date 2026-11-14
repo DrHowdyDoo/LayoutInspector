@@ -33,10 +33,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void setViewContent() {
         if (!areWeGood()) {
-            setContentView(R.layout.activity_main);
+            setContentView(R.layout.assistant_select_guide);
             setUpMainGroup();
         } else {
-            setContentView(R.layout.activity_main_2);
+            setContentView(R.layout.assistant_launch_guide);
         }
     }
 
