@@ -223,6 +223,7 @@ public class Utils {
                 transformedBounds,
                 visibleBounds,
                 parentBounds,
+                alpha,
                 depth,
                 depth,
                 position);
@@ -424,7 +425,23 @@ public class Utils {
                 || area(wrapper.getVisibleBounds()) < parentArea * OVERLAY_PARENT_COVERAGE) {
             return false;
         }
+
+        // AssistStructure does not expose drawable alpha, but it does expose View alpha.
+        // Never let a genuinely translucent View hide the underlying branch in our model.
+        if (wrapper.getEffectiveAlpha() < 0.98f || isKnownScrimId(
+                wrapper.getViewNode().getIdEntry())) {
+            return false;
+        }
         return hasVisibleContentLeaf(node);
+    }
+
+    private static boolean isKnownScrimId(String idEntry) {
+        if (idEntry == null || idEntry.isEmpty()) return false;
+        String normalized = idEntry.toLowerCase(java.util.Locale.ROOT);
+        return normalized.contains("touch_outside")
+                || normalized.contains("scrim")
+                || normalized.equals("statusbarbackground")
+                || normalized.equals("status_bar_background");
     }
 
     private static boolean hasVisibleContentLeaf(TreeNode node) {

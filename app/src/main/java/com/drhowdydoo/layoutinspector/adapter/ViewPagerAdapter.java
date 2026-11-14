@@ -108,8 +108,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             treeViewAdapter = new TreeViewAdapter(factory);
             treeViewAdapter.setTreeNodeClickListener((treeNode, view) -> {
                 ViewNodeWrapper wrapper = (ViewNodeWrapper) treeNode.getValue();
-                if (wrapper == null || wrapper.isOccluded()
-                        || wrapper.getVisibleBounds().isEmpty()) return;
+                if (wrapper == null || wrapper.getVisibleBounds().isEmpty()) return;
 
                 updateSelectedTreeNode(treeNode, wrapper.getPositionInHierarchy());
                 setComponent(wrapper);
@@ -390,7 +389,7 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
 
 
     public void showInHierarchyTab(ViewNodeWrapper viewNodeWrapper) {
-        if (viewNodeWrapper == null || viewNodeWrapper.isOccluded()
+        if (viewNodeWrapper == null
                 || viewNodeWrapper.getVisibleBounds().isEmpty() || flatHierarchy.isEmpty()) return;
         int index = viewNodeWrapper.getPositionInHierarchy();
         if (index < 0 || index >= flatHierarchy.size()) return;
@@ -434,9 +433,9 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
         if (viewNodeWrapper == null || viewNodeWrapper.getViewNode() == null) {
             return;
         }
-        // Nodes retained in the tree may belong to a background sibling layer (for example,
-        // the home workspace while the all-apps drawer is open). Never draw/select those bounds.
-        if (viewNodeWrapper.isOccluded() || viewNodeWrapper.getVisibleBounds().isEmpty()) {
+        // Occlusion is a foreground-layer heuristic, not a reason to make a node impossible
+        // to inspect. Keep any node with real visible geometry selectable from the hierarchy.
+        if (viewNodeWrapper.getVisibleBounds().isEmpty()) {
             assistSession.drawRect(null);
             DistanceArrowDrawer.clearCanvas();
             AssistSession.selectedViewNode = null;
@@ -639,7 +638,6 @@ public class ViewPagerAdapter extends RecyclerView.Adapter {
             ViewNodeWrapper wrapper = (ViewNodeWrapper) node.getValue();
             if (wrapper.getDepth() > 0
                     && wrapper.isVisible()
-                    && !wrapper.isOccluded()
                     && !wrapper.getVisibleBounds().isEmpty()) {
                 return true;
             }

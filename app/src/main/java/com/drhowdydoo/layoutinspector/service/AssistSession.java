@@ -60,10 +60,10 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ExecutorService;
@@ -97,20 +97,6 @@ public class AssistSession extends VoiceInteractionSession {
     public static ViewNodeWrapper selectedViewNode = null;
     public static Stack<ViewNodeWrapper> viewNodeWrapperStack = new Stack<>();
     private CoordinatorLayout draggableContainer;
-
-    private static final Set<String> VIEWGROUP_CLASSES = Collections.unmodifiableSet(
-            new HashSet<>(Arrays.asList(
-                    "android.widget.FrameLayout",
-                    "android.widget.LinearLayout",
-                    "android.widget.RelativeLayout",
-                    "androidx.constraintlayout.widget.ConstraintLayout",
-                    "android.widget.ScrollView",
-                    "android.widget.GridLayout",
-                    "androidx.coordinatorlayout.widget.CoordinatorLayout",
-                    "androidx.recyclerview.widget.RecyclerView",
-                    "android.view.ViewGroup"
-            ))
-    );
 
     private final ExecutorService hierarchyExecutor = Executors.newSingleThreadExecutor();
     private final AtomicInteger hierarchyGeneration = new AtomicInteger();
@@ -650,47 +636,208 @@ public class AssistSession extends VoiceInteractionSession {
     }
 
     /**
-     * Returns the top-most selectable node using the same reverse depth-first precedence as
-     * the original insertion-ordered map, without allocating a candidate list or scanning a map.
+     * Selects the best geometric hit candidate. Every visible non-root node remains eligible,
+     * including empty Views and nodes without accessibility semantics. Ranking prefers the
+     * deepest target within a branch, while LCA-based sibling comparison resolves overlapping
+     * branches using the best drawing-order information AssistStructure exposes. Occlusion is
+     * deliberately not a hard filter: it is only a heuristic and must not make nodes uninspectable.
      */
+    @Nullable
     public ViewNodeWrapper getTreeNodeByCoordinates(int x, int y) {
         int viewType = preferences.getInt("SETTINGS_VIEW_TYPE", View.VISIBLE);
-        ViewNodeWrapper topMostParentNode = null;
+        TreeNode bestNode = null;
 
-        for (int i = flatHierarchy.size() - 1; i >= 0; i--) {
-            Object value = flatHierarchy.get(i).getValue();
-            if (!(value instanceof ViewNodeWrapper)) continue;
-
-            ViewNodeWrapper current = (ViewNodeWrapper) value;
-            Rect bounds = current.getBounds();
-            if (bounds == null || bounds.isEmpty() || !bounds.contains(x, y)
-                    || current.isOccluded()
-                    || skipInvisibleViews(current, viewType)) {
+        for (TreeNode candidate : flatHierarchy) {
+            if (candidate == null || !(candidate.getValue() instanceof ViewNodeWrapper)) {
                 continue;
             }
 
-            if (current.getViewNode().getChildCount() == 0 && !isScrimView(current)) {
-                return current;
+            ViewNodeWrapper wrapper = (ViewNodeWrapper) candidate.getValue();
+            Rect bounds = wrapper.getVisibleBounds();
+            // The window root is only a coordinate container. All real Views, including plain
+            // childless Views, are valid candidates when their clipped bounds contain the tap.
+            if (wrapper.getDepth() == 0 || !wrapper.isVisible()
+                    || bounds == null || bounds.isEmpty() || !bounds.contains(x, y)
+                    || skipInvisibleViews(wrapper, viewType)) {
+                continue;
             }
-            if (topMostParentNode == null && current.getViewNode().getChildCount() > 0) {
-                topMostParentNode = current;
+
+            if (bestNode == null || compareSelectionPriority(candidate, bestNode) < 0) {
+                bestNode = candidate;
             }
         }
-        return topMostParentNode;
+
+        return bestNode == null ? null : (ViewNodeWrapper) bestNode.getValue();
     }
 
     private boolean skipInvisibleViews(ViewNodeWrapper node, int viewType) {
         return viewType >= 0 && !node.showViewNode(viewType);
     }
 
-    private boolean isScrimView(ViewNodeWrapper viewNodeWrapper) {
-        if (flatHierarchy.isEmpty()) return false;
-        ViewNodeWrapper root = (ViewNodeWrapper) flatHierarchy.get(0).getValue();
-        boolean scrimview = "View".equalsIgnoreCase(viewNodeWrapper.getSimpleClassName())
-                && viewNodeWrapper.getViewNode().getWidth() == root.getViewNode().getWidth();
-        boolean isViewGroup = VIEWGROUP_CLASSES.contains(
-                viewNodeWrapper.getViewNode().getClassName());
-        return scrimview || isViewGroup;
+    /**
+     * Comparator contract: a negative result means firstNode should be selected before
+     * secondNode. Every node passed here has already passed the hit test, so the smallest
+     * clipped visible rectangle wins even when the candidates belong to different branches.
+     * Drawing order and overlay heuristics are only tie-breakers for equally-sized candidates.
+     */
+    private int compareSelectionPriority(TreeNode firstNode, TreeNode secondNode) {
+        ViewNodeWrapper first = (ViewNodeWrapper) firstNode.getValue();
+        ViewNodeWrapper second = (ViewNodeWrapper) secondNode.getValue();
+
+        // IMPORTANT: compare geometry BEFORE LCA/elevation/sibling order. Otherwise a large
+        // bottom/full-width sibling can win simply because its branch is later in the tree.
+        // getVisibleBounds() is already clipped to ancestors and the window, and both candidates
+        // are guaranteed to contain the user's tap point by getTreeNodeByCoordinates().
+        long firstArea = area(first.getVisibleBounds());
+        long secondArea = area(second.getVisibleBounds());
+        if (firstArea != secondArea) {
+            return Long.compare(firstArea, secondArea); // smaller visible target wins
+        }
+
+        // Equal-area candidates: avoid choosing a known system blocker when another equally
+        // sized candidate exists, but never remove the blocker from the candidate set.
+        int firstPenalty = getOverlayPenalty(firstNode);
+        int secondPenalty = getOverlayPenalty(secondNode);
+        if (firstPenalty != secondPenalty) {
+            return Integer.compare(firstPenalty, secondPenalty);
+        }
+
+        // Equal geometry: use available drawing-order information for overlapping branches.
+        int zOrder = compareZOrderViaLCA(firstNode, secondNode);
+        if (zOrder != 0) return zOrder;
+
+        // Same area and drawing order: prefer the deeper node, then keep selection stable.
+        if (first.getDepth() != second.getDepth()) {
+            return Integer.compare(second.getDepth(), first.getDepth());
+        }
+
+        return Integer.compare(second.getPositionInHierarchy(), first.getPositionInHierarchy());
+    }
+
+    /**
+     * Returns a small penalty for likely full-screen blockers. These Views are NOT excluded:
+     * users can still select them from the hierarchy. The penalty only lets a more specific
+     * underlying target win the initial touch when the two occupy the same point.
+     */
+    private int getOverlayPenalty(TreeNode node) {
+        ViewNodeWrapper wrapper = (ViewNodeWrapper) node.getValue();
+        AssistStructure.ViewNode viewNode = wrapper.getViewNode();
+        String simpleClassName = wrapper.getSimpleClassName();
+        String idEntry = viewNode.getIdEntry();
+
+        if (isKnownScrimId(idEntry)
+                || "Space".equals(simpleClassName)
+                || "ViewStub".equals(simpleClassName)) {
+            return 2;
+        }
+
+        Rect rootBounds = getWindowRootBounds(node);
+        long rootArea = area(rootBounds);
+        long nodeArea = area(wrapper.getVisibleBounds());
+        float areaRatio = rootArea > 0L ? (float) nodeArea / (float) rootArea : 0f;
+
+        CharSequence text = viewNode.getText();
+        CharSequence contentDescription = viewNode.getContentDescription();
+        boolean hasOwnContent = (text != null && text.length() > 0)
+                || (contentDescription != null && contentDescription.length() > 0);
+        boolean largeEmptyLeaf = viewNode.getChildCount() == 0
+                && !hasOwnContent && areaRatio >= 0.55f;
+        boolean largeTranslucentLayer = wrapper.getEffectiveAlpha() < 0.95f
+                && areaRatio >= 0.40f;
+
+        return largeEmptyLeaf || largeTranslucentLayer ? 1 : 0;
+    }
+
+    private boolean isKnownScrimId(String idEntry) {
+        if (idEntry == null || idEntry.isEmpty()) return false;
+        String normalized = idEntry.toLowerCase(Locale.ROOT);
+        return normalized.contains("touch_outside")
+                || normalized.contains("scrim")
+                || normalized.equals("statusbarbackground")
+                || normalized.equals("status_bar_background");
+    }
+
+    private static long area(Rect rect) {
+        if (rect == null || rect.isEmpty()) return 0L;
+        return (long) rect.width() * (long) rect.height();
+    }
+
+    private TreeNode getWindowRoot(TreeNode node) {
+        TreeNode current = node;
+        while (current != null && current.getParent() != null) {
+            current = current.getParent();
+        }
+        return current;
+    }
+
+    /** Returns the visible bounds of the root ViewNodeWrapper for this hierarchy tree. */
+    private Rect getWindowRootBounds(TreeNode node) {
+        TreeNode rootNode = getWindowRoot(node);
+        if (rootNode == null || !(rootNode.getValue() instanceof ViewNodeWrapper)) {
+            return new Rect();
+        }
+        return ((ViewNodeWrapper) rootNode.getValue()).getVisibleBounds();
+    }
+
+    /**
+     * Compare the first children below the candidates' Lowest Common Ancestor. A deeper
+     * descendant wins over its ancestor. For separate sibling branches, elevation wins first;
+     * equal elevation falls back to child index (AssistStructure's best available approximation).
+     */
+    private int compareZOrderViaLCA(TreeNode firstNode, TreeNode secondNode) {
+        TreeNode lca = findLowestCommonAncestor(firstNode, secondNode);
+        if (lca == null) {
+            // Separate window roots: later roots are commonly higher in AssistStructure order.
+            ViewNodeWrapper firstRoot = (ViewNodeWrapper) getWindowRoot(firstNode).getValue();
+            ViewNodeWrapper secondRoot = (ViewNodeWrapper) getWindowRoot(secondNode).getValue();
+            return Integer.compare(secondRoot.getPositionInHierarchy(),
+                    firstRoot.getPositionInHierarchy());
+        }
+
+        if (lca == firstNode) return 1;   // second is a descendant and is more specific
+        if (lca == secondNode) return -1; // first is a descendant and is more specific
+
+        TreeNode firstBranch = childUnderAncestor(firstNode, lca);
+        TreeNode secondBranch = childUnderAncestor(secondNode, lca);
+        if (firstBranch == null || secondBranch == null || firstBranch == secondBranch) {
+            return 0;
+        }
+
+        ViewNodeWrapper firstBranchWrapper = (ViewNodeWrapper) firstBranch.getValue();
+        ViewNodeWrapper secondBranchWrapper = (ViewNodeWrapper) secondBranch.getValue();
+        float firstElevation = firstBranchWrapper.getViewNode().getElevation();
+        float secondElevation = secondBranchWrapper.getViewNode().getElevation();
+        if (firstElevation > secondElevation + 0.01f) return -1;
+        if (secondElevation > firstElevation + 0.01f) return 1;
+
+        LinkedList<TreeNode> siblings = lca.getChildren();
+        int firstIndex = siblings == null ? -1 : siblings.indexOf(firstBranch);
+        int secondIndex = siblings == null ? -1 : siblings.indexOf(secondBranch);
+        if (firstIndex != secondIndex) return Integer.compare(secondIndex, firstIndex);
+        return 0;
+    }
+
+    private TreeNode findLowestCommonAncestor(TreeNode first, TreeNode second) {
+        Set<TreeNode> firstAncestors = new HashSet<>();
+        TreeNode current = first;
+        while (current != null) {
+            firstAncestors.add(current);
+            current = current.getParent();
+        }
+        current = second;
+        while (current != null) {
+            if (firstAncestors.contains(current)) return current;
+            current = current.getParent();
+        }
+        return null;
+    }
+
+    private TreeNode childUnderAncestor(TreeNode node, TreeNode ancestor) {
+        TreeNode current = node;
+        while (current != null && current.getParent() != ancestor) {
+            current = current.getParent();
+        }
+        return current;
     }
 
     private void showLayoutBounds() {
@@ -701,7 +848,6 @@ public class AssistSession extends VoiceInteractionSession {
             Rect bounds = wrapper.getVisibleBounds();
             // The window root is only a coordinate container, not a useful component bound.
             if (wrapper.getDepth() > 0
-                    && !wrapper.isOccluded()
                     && bounds != null
                     && !bounds.isEmpty()
                     && (viewType < 0 || wrapper.showViewNode(viewType))) {

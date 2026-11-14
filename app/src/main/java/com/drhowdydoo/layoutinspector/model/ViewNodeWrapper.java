@@ -19,6 +19,7 @@ public class ViewNodeWrapper {
     private final Rect visibleBounds;
     private final Rect parentBounds;
     private boolean occluded;
+    private float effectiveAlpha = 1f;
     private int depth;
     private int levelInParent;
     private int positionInHierarchy;
@@ -33,11 +34,26 @@ public class ViewNodeWrapper {
                            int depth,
                            int levelInParent,
                            int positionInHierarchy) {
+        this(viewNode, visibility, bounds, visibleBounds, parentBounds,
+                viewNode != null ? viewNode.getAlpha() : 1f,
+                depth, levelInParent, positionInHierarchy);
+    }
+
+    public ViewNodeWrapper(AssistStructure.ViewNode viewNode,
+                           boolean visibility,
+                           Rect bounds,
+                           Rect visibleBounds,
+                           Rect parentBounds,
+                           float effectiveAlpha,
+                           int depth,
+                           int levelInParent,
+                           int positionInHierarchy) {
         this.viewNode = viewNode;
         this.visibility = visibility;
         this.bounds = bounds == null ? new Rect() : new Rect(bounds);
         this.visibleBounds = visibleBounds == null ? new Rect() : new Rect(visibleBounds);
         this.parentBounds = parentBounds == null ? new Rect() : new Rect(parentBounds);
+        this.effectiveAlpha = Math.max(0f, Math.min(1f, effectiveAlpha));
         this.depth = depth;
         this.levelInParent = levelInParent;
         this.positionInHierarchy = positionInHierarchy;
@@ -113,6 +129,11 @@ public class ViewNodeWrapper {
 
     public boolean isOccluded() {
         return occluded;
+    }
+
+    /** Alpha after combining this node with all of its ancestors. */
+    public float getEffectiveAlpha() {
+        return effectiveAlpha;
     }
 
     public void setOccluded(boolean occluded) {
