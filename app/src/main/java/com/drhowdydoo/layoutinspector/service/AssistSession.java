@@ -33,7 +33,6 @@ import android.view.ViewStub;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.transition.ChangeBounds;
@@ -46,7 +45,7 @@ import com.amrdeveloper.treeview.TreeNode;
 import com.drhowdydoo.layoutinspector.R;
 import com.drhowdydoo.layoutinspector.adapter.ViewPagerAdapter;
 import com.drhowdydoo.layoutinspector.model.ViewNodeWrapper;
-import com.drhowdydoo.layoutinspector.ui.AuraDiffusionView;
+import com.drhowdydoo.layoutinspector.ui.GridScanView;
 import com.drhowdydoo.layoutinspector.ui.DrawableFrameLayout;
 import com.drhowdydoo.layoutinspector.util.DistanceArrowDrawer;
 import com.drhowdydoo.layoutinspector.util.DrawableLayoutHelper;
@@ -119,7 +118,7 @@ public class AssistSession extends VoiceInteractionSession {
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private AuraDiffusionView auraDiffusionView;
+    private GridScanView gridScanView;
 
     public AssistSession(Context context) {
         super(context);
@@ -137,8 +136,8 @@ public class AssistSession extends VoiceInteractionSession {
     @Override
     public void onShow(@Nullable Bundle args, int showFlags) {
         Log.d("AssistantDebug", "AssistSession: onShow()");
-        if (auraDiffusionView != null && shouldEnableAuraAnimation(auraDiffusionView.getContext())) {
-            auraDiffusionView.startAuraAnimation();
+        if (gridScanView != null && shouldEnableAuraAnimation(gridScanView.getContext())) {
+            gridScanView.startAuraAnimation();
         }
         if (mAssistantView != null) mAssistantView.setVisibility(View.VISIBLE);
         if (mCardView != null && slideUpAnimation != null) {
@@ -217,7 +216,7 @@ public class AssistSession extends VoiceInteractionSession {
         settingsStub = mAssistantView.findViewById(R.id.settings_stub);
         btnExpandCollapse = mAssistantView.findViewById(R.id.btnExpandCollapse);
         draggableContainer = mAssistantView.findViewById(R.id.draggable_container);
-        auraDiffusionView = mAssistantView.findViewById(R.id.aura_diffusion_view);
+        gridScanView = mAssistantView.findViewById(R.id.grid_scan_view);
 
         setUpDraggableContainerInsets();
         setUpAnimations();

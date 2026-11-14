@@ -10,8 +10,8 @@
     android:fitsSystemWindows="false"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <com.drhowdydoo.layoutinspector.ui.AuraDiffusionView
-        android:id="@+id/aura_diffusion_view"
+    <com.drhowdydoo.layoutinspector.ui.GridScanView
+        android:id="@+id/grid_scan_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="false"
