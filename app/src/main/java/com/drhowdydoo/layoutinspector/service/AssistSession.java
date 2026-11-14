@@ -656,7 +656,7 @@ public class AssistSession extends VoiceInteractionSession {
             Rect bounds = wrapper.getVisibleBounds();
             // The window root is only a coordinate container. All real Views, including plain
             // childless Views, are valid candidates when their clipped bounds contain the tap.
-            if (wrapper.getDepth() == 0 || !wrapper.isVisible()
+            if (wrapper.getDepth() == 0
                     || wrapper.isOccluded()
                     || bounds == null || bounds.isEmpty() || !bounds.contains(x, y)
                     || skipInvisibleViews(wrapper, viewType)) {
