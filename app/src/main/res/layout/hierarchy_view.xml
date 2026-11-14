@@ -37,7 +37,7 @@
                     android:textColor="?android:attr/textColorPrimary"
                     android:textSize="18sp"
                     android:textStyle="bold"
-                    android:drawableTint="?attr/colorPrimary"
+                    android:drawableTint="?attr/colorOnSurfaceVariant"
                     android:drawableTop="@drawable/baseline_shield_24" />
 
                 <!-- Small Subtitle Message -->
